@@ -2,20 +2,37 @@ use anyhow::Result;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
-pub enum ScholoError {
+pub enum MoxenError {
+    ManifestNotLoaded,
     MissingTocFile,
     MissingManifestFile,
+    GeneralError(String),
 }
 
-impl std::error::Error for ScholoError {}
+impl std::error::Error for MoxenError {}
 
-impl std::fmt::Display for ScholoError {
+impl std::fmt::Display for MoxenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Self::ManifestNotLoaded => writeln!(f, "Moxen.toml manifest is not loaded"),
             Self::MissingTocFile => writeln!(f, "missing required toc file"),
-            Self::MissingManifestFile => writeln!(f, "missing Scholo.toml file"),
+            Self::MissingManifestFile => writeln!(f, "missing Moxen.toml file"),
+            Self::GeneralError(err) => writeln!(f, "{err}"),
         }
     }
+}
+
+pub fn create_project_dir() -> Result<PathBuf> {
+    if let Some(home) = dirs::home_dir() {
+        let project_dir = home.join(".moxen");
+        if !project_dir.exists() {
+            std::fs::create_dir_all(&project_dir)?;
+        }
+
+        return Ok(project_dir);
+    }
+
+    Err(MoxenError::GeneralError("unable to determine home directory".to_string()).into())
 }
 
 pub fn gather_files(dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {

@@ -1,23 +1,23 @@
-use crate::common::ScholoError;
+use crate::common::MoxenError;
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::{fmt, fs, path::Path};
 
 // TODO: Add Categories
 
-const MANIFEST: &'static str = "Scholo.toml";
+const MANIFEST: &'static str = "Moxen.toml";
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-pub struct Addon {
-    pub addon: AddonMetadata,
+pub struct PackageManifest {
+    pub addon: Metadata,
 
     // TODO: Deal with at some point
     pub package: Option<PackageInformation>,
 }
 
 #[derive(Debug, Deserialize)]
-pub struct AddonMetadata {
+pub struct Metadata {
     pub name: String,
     pub version: Option<String>,
     pub wow_version: String,
@@ -34,7 +34,7 @@ pub struct PackageInformation {
     ignore_list: Option<Vec<String>>,
 }
 
-impl fmt::Display for Addon {
+impl fmt::Display for PackageManifest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let addon = &self.addon;
 
@@ -61,19 +61,19 @@ impl fmt::Display for Addon {
     }
 }
 
-pub fn load_manifest(dir: impl AsRef<Path>) -> Result<Addon> {
+pub fn load_manifest(dir: impl AsRef<Path>) -> Result<PackageManifest> {
     let contents = fs::read_to_string(dir.as_ref().join(MANIFEST)).context("reading manifest file");
 
     match contents {
         Ok(contents) => {
-            let manifest: Addon =
+            let manifest: PackageManifest =
                 toml::from_str(&contents).context("deserializing manifest file")?;
 
             Ok(manifest)
         }
         Err(err) => {
-            eprintln!("No Scholo.toml file found in project root: {err}");
-            anyhow::bail!(ScholoError::MissingManifestFile);
+            eprintln!("No Moxen.toml file found in project root: {err}");
+            anyhow::bail!(MoxenError::MissingManifestFile);
         }
     }
 }
