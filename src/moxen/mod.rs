@@ -46,7 +46,7 @@ impl Manager {
 
     pub async fn package(&self) -> Result<()> {
         match &self.manifest {
-            Some(manifest) => package_content(&manifest, &self.src_dir).await,
+            Some(manifest) => package_content(&manifest, &self.src_dir, &self.home_dir).await,
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
     }

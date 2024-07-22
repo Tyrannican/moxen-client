@@ -25,8 +25,10 @@ impl std::fmt::Display for MoxenError {
 pub fn create_project_dir() -> Result<PathBuf> {
     if let Some(home) = dirs::home_dir() {
         let project_dir = home.join(".moxen");
-        if !project_dir.exists() {
-            std::fs::create_dir_all(&project_dir)?;
+        for dir in [project_dir.join("package")].iter() {
+            if !dir.exists() {
+                std::fs::create_dir_all(&dir)?;
+            }
         }
 
         return Ok(project_dir);

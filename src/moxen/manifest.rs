@@ -1,22 +1,20 @@
 use crate::common::MoxenError;
 use anyhow::{Context, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{fmt, fs, path::Path};
 
 // TODO: Add Categories
+// TODO: Add support for Collections (e.g. DBM, etc.)
+// TODO: Add support for Libraries (e.g. AceConsole, etc)
 
 const MANIFEST: &'static str = "Moxen.toml";
 
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct PackageManifest {
     pub addon: Metadata,
-
-    // TODO: Deal with at some point
-    pub package: Option<PackageInformation>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Metadata {
     pub name: String,
     pub version: Option<String>,
@@ -27,11 +25,35 @@ pub struct Metadata {
     pub repository: Option<String>,
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Deserialize)]
-pub struct PackageInformation {
-    #[serde(rename = "ignore")]
-    ignore_list: Option<Vec<String>>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NormalizedManifest {
+    name: String,
+    version: Option<String>,
+    wow_version: String,
+    cksum: String,
+}
+
+impl PackageManifest {
+    pub fn normalise_name(&self) -> String {
+        let mut name = self.addon.name.to_lowercase().replace(" ", "-");
+        if let Some(version) = &self.addon.version {
+            name.push_str(&version);
+        } else {
+            name.push_str(&self.addon.wow_version);
+        }
+
+        name
+    }
+
+    pub fn normalise(self, cksum: String) -> NormalizedManifest {
+        let name = self.normalise_name();
+        NormalizedManifest {
+            name,
+            version: self.addon.version,
+            wow_version: self.addon.wow_version,
+            cksum,
+        }
+    }
 }
 
 impl fmt::Display for PackageManifest {
