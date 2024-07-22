@@ -1,8 +1,8 @@
-[addon]
-name = "Deadly Boss Mods"
-version = "1.20.2"
+[mox]
+name = "Test Mox Config"
+version = "0.1.0"
 wow_version= "11.0.1"
-description = "Boss mods for World of Warcraft"
-homepage = "https://deadlybossmods.com"
-authors = ["Graham Keenan <graham.keenan@outlook.com>"]
-repository = "https://github.com/mysticalos/dbm"
+description = "Test configuration for a Moxen project"
+homepage = "https://example.com"
+authors = ["Firstname LastName <email@email.com>"]
+repository = "https://github.com/link-to-repo"

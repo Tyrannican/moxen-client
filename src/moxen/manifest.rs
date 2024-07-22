@@ -11,7 +11,7 @@ const MANIFEST: &'static str = "Moxen.toml";
 
 #[derive(Debug, Deserialize)]
 pub struct PackageManifest {
-    pub addon: Metadata,
+    pub mox: Metadata,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -33,13 +33,14 @@ pub struct NormalizedManifest {
     cksum: String,
 }
 
+#[allow(dead_code)]
 impl PackageManifest {
     pub fn normalise_name(&self) -> String {
-        let mut name = self.addon.name.to_lowercase().replace(" ", "-");
-        if let Some(version) = &self.addon.version {
+        let mut name = self.mox.name.to_lowercase().replace(" ", "-");
+        if let Some(version) = &self.mox.version {
             name.push_str(&version);
         } else {
-            name.push_str(&self.addon.wow_version);
+            name.push_str(&self.mox.wow_version);
         }
 
         name
@@ -49,8 +50,8 @@ impl PackageManifest {
         let name = self.normalise_name();
         NormalizedManifest {
             name,
-            version: self.addon.version,
-            wow_version: self.addon.wow_version,
+            version: self.mox.version,
+            wow_version: self.mox.wow_version,
             cksum,
         }
     }
@@ -58,7 +59,7 @@ impl PackageManifest {
 
 impl fmt::Display for PackageManifest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let addon = &self.addon;
+        let addon = &self.mox;
 
         writeln!(f, "Name: {}", addon.name)?;
         if let Some(version) = &addon.version {
