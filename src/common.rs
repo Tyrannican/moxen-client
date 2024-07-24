@@ -1,11 +1,14 @@
 use anyhow::Result;
 use std::path::{Path, PathBuf};
 
+const INVALID_FILETYPE: [&'static str; 6] = ["exe", "c", "cpp", "rs", "js", "cs"];
+
 #[derive(Debug)]
 pub enum MoxenError {
     ManifestNotLoaded,
     MissingTocFile,
     MissingManifestFile,
+    InvalidFileExtension(String),
     GeneralError(String),
 }
 
@@ -17,6 +20,7 @@ impl std::fmt::Display for MoxenError {
             Self::ManifestNotLoaded => writeln!(f, "Moxen.toml manifest is not loaded"),
             Self::MissingTocFile => writeln!(f, "missing required toc file"),
             Self::MissingManifestFile => writeln!(f, "missing Moxen.toml file"),
+            Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found: {ext}"),
             Self::GeneralError(err) => writeln!(f, "{err}"),
         }
     }
@@ -44,6 +48,20 @@ pub fn gather_files(dir: impl AsRef<Path>) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+fn invalid_filetypes(file: &PathBuf) -> Result<()> {
+    match file.extension() {
+        Some(ext) => {
+            let ext = ext.to_str().unwrap();
+            if INVALID_FILETYPE.contains(&ext) {
+                anyhow::bail!(MoxenError::InvalidFileExtension(ext.to_owned()));
+            }
+
+            return Ok(());
+        }
+        None => Ok(()),
+    }
+}
+
 fn iterdir(dir: impl AsRef<Path>, collector: &mut Vec<PathBuf>) -> Result<()> {
     for entry in std::fs::read_dir(dir.as_ref())? {
         let entry = entry?;
@@ -51,7 +69,10 @@ fn iterdir(dir: impl AsRef<Path>, collector: &mut Vec<PathBuf>) -> Result<()> {
         if path.is_dir() {
             iterdir(path, collector)?;
         } else {
-            collector.push(path);
+            match invalid_filetypes(&path) {
+                Ok(_) => collector.push(path),
+                Err(e) => return e,
+            }
         }
     }
 
