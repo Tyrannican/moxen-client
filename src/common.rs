@@ -71,7 +71,7 @@ fn iterdir(dir: impl AsRef<Path>, collector: &mut Vec<PathBuf>) -> Result<()> {
         } else {
             match invalid_filetypes(&path) {
                 Ok(_) => collector.push(path),
-                Err(e) => return e,
+                Err(e) => return Err(e.into()),
             }
         }
     }
