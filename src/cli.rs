@@ -4,6 +4,7 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     #[clap(short, long)]
     pub directory: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Commands,
 }

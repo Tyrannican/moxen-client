@@ -5,12 +5,14 @@ use std::path::PathBuf;
 
 use super::manifest::PackageManifest;
 
+// TODO: Better logging of the packaging step
 pub async fn package_content(
     manifest: &PackageManifest,
     src_path: &PathBuf,
     mox_path: &PathBuf,
 ) -> Result<()> {
     let name = manifest.normalise_name();
+    println!("Packaging {} as {}...", src_path.display(), name);
     let package_target_path = mox_path.join("package").join(&name);
     let compressed_target_path = mox_path.join("package").join(&format!("{name}.mox"));
 
@@ -20,7 +22,7 @@ pub async fn package_content(
             if !check_for_toc(&item_path) {
                 eprintln!(
                     "A TOC file in the root of {} is needed.",
-                    item_path.to_str().unwrap()
+                    item_path.display()
                 );
                 anyhow::bail!(MoxenError::MissingTocFile);
             }
@@ -29,13 +31,14 @@ pub async fn package_content(
         if !check_for_toc(&src_path) {
             eprintln!(
                 "A TOC file at the project root {} is needed for an Addon.",
-                src_path.to_str().unwrap()
+                src_path.display()
             );
             anyhow::bail!(MoxenError::MissingTocFile);
         }
     }
 
     package_mox(src_path, &package_target_path, &compressed_target_path)?;
+    println!("Crafted {}!", compressed_target_path.display());
     Ok(())
 }
 
