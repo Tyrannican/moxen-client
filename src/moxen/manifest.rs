@@ -12,6 +12,7 @@ const MANIFEST: &'static str = "Moxen.toml";
 #[derive(Debug, Deserialize)]
 pub struct PackageManifest {
     pub mox: Metadata,
+    pub collection: Option<PackageCollection>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,6 +24,11 @@ pub struct Metadata {
     pub authors: Vec<String>,
     pub homepage: Option<String>,
     pub repository: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PackageCollection {
+    pub members: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -61,6 +67,7 @@ impl fmt::Display for PackageManifest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let addon = &self.mox;
 
+        writeln!(f, "--- Mox Manifest ---")?;
         writeln!(f, "Name: {}", addon.name)?;
         if let Some(version) = &addon.version {
             writeln!(f, "Addon Version: {version}")?;
@@ -79,6 +86,15 @@ impl fmt::Display for PackageManifest {
         if let Some(repo) = &addon.repository {
             writeln!(f, "Source Code: {repo}")?;
         }
+
+        if let Some(collection) = &self.collection {
+            writeln!(f, "\nCollection:")?;
+            for item in collection.members.iter() {
+                writeln!(f, "- {item}")?;
+            }
+        }
+
+        writeln!(f, "------")?;
 
         Ok(())
     }
