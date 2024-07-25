@@ -12,5 +12,6 @@ pub struct Cli {
 pub enum Commands {
     Info,
     Package,
+    Publish,
     Clean,
 }

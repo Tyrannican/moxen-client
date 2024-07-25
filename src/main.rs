@@ -4,7 +4,6 @@ use clap::Parser;
 mod cli;
 mod common;
 mod moxen;
-// mod deploy;
 
 use cli::*;
 use moxen::Manager;
@@ -22,6 +21,9 @@ async fn main() -> Result<()> {
         Commands::Package => {
             pkg_mgr.load()?;
             pkg_mgr.package().await?;
+        }
+        Commands::Publish => {
+            pkg_mgr.publish().await?;
         }
         Commands::Clean => {
             pkg_mgr.clean()?;

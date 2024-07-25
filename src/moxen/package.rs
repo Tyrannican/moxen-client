@@ -50,8 +50,6 @@ fn package_mox(
 }
 
 fn check_for_toc(cwd: &PathBuf) -> bool {
-    // This can be missing in the case of an Addon Collection
-    // TODO: Handle collections when supported
     let entries: Vec<_> = glob::glob(cwd.join("*.toc").to_str().unwrap())
         .unwrap()
         .into_iter()

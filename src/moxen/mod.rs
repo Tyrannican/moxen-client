@@ -1,5 +1,6 @@
 pub mod manifest;
 pub mod package;
+pub mod publish;
 
 use anyhow::Result;
 use std::path::PathBuf;
@@ -49,6 +50,11 @@ impl Manager {
             Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir).await,
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
+    }
+
+    pub async fn publish(&self) -> Result<()> {
+        println!("Publishing package!");
+        Ok(())
     }
 
     pub fn clean(&self) -> Result<()> {
