@@ -23,6 +23,9 @@ async fn main() -> Result<()> {
             pkg_mgr.load()?;
             pkg_mgr.package().await?;
         }
+        Commands::Clean => {
+            pkg_mgr.clean()?;
+        }
     }
 
     Ok(())

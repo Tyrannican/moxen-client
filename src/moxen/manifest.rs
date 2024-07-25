@@ -43,6 +43,7 @@ pub struct NormalizedManifest {
 impl PackageManifest {
     pub fn normalise_name(&self) -> String {
         let mut name = self.mox.name.to_lowercase().replace(" ", "-");
+        name.push('-');
         if let Some(version) = &self.mox.version {
             name.push_str(&version);
         } else {

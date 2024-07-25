@@ -9,7 +9,7 @@ use manifest::{load_manifest, PackageManifest};
 use package::package_content;
 
 pub struct Manager {
-    home_dir: PathBuf,
+    mox_dir: PathBuf,
     src_dir: PathBuf,
     manifest: Option<PackageManifest>,
 }
@@ -22,9 +22,9 @@ impl Manager {
             std::env::current_dir().expect("unable to get current directory")
         };
 
-        let home_dir = create_project_dir().expect("cannot create project directory");
+        let mox_dir = create_project_dir().expect("cannot create project directory");
         Self {
-            home_dir,
+            mox_dir,
             src_dir: dir,
             manifest: None,
         }
@@ -46,8 +46,13 @@ impl Manager {
 
     pub async fn package(&self) -> Result<()> {
         match &self.manifest {
-            Some(manifest) => package_content(&manifest, &self.src_dir, &self.home_dir).await,
+            Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir).await,
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
+    }
+
+    pub fn clean(&self) -> Result<()> {
+        std::fs::remove_dir_all(&self.mox_dir)?;
+        Ok(())
     }
 }
