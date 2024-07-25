@@ -13,12 +13,29 @@ pub async fn package_content(
     let name = manifest.normalise_name();
     let package_target_path = mox_path.join("package").join(&name);
     let compressed_target_path = mox_path.join("package").join(&format!("{name}.mox"));
+
     if let Some(collection) = &manifest.collection {
-        //
+        for item in collection.members.iter() {
+            let item_path = src_path.join(item);
+            if !check_for_toc(&item_path) {
+                eprintln!(
+                    "A TOC file in the root of {} is needed.",
+                    item_path.to_str().unwrap()
+                );
+                anyhow::bail!(MoxenError::MissingTocFile);
+            }
+        }
     } else {
-        package_mox(src_path, &package_target_path, &compressed_target_path)?;
+        if !check_for_toc(&src_path) {
+            eprintln!(
+                "A TOC file at the project root {} is needed for an Addon.",
+                src_path.to_str().unwrap()
+            );
+            anyhow::bail!(MoxenError::MissingTocFile);
+        }
     }
 
+    package_mox(src_path, &package_target_path, &compressed_target_path)?;
     Ok(())
 }
 
@@ -27,10 +44,6 @@ fn package_mox(
     dst_path: &PathBuf,
     compressed_dst_path: &PathBuf,
 ) -> Result<()> {
-    if !check_for_toc(&src_path) {
-        eprintln!("A TOC file at the project root is needed for an Addon.");
-        anyhow::bail!(MoxenError::MissingTocFile);
-    }
     let files = gather_files(&src_path)?;
     create_tarball(&src_path, files, dst_path, compressed_dst_path)?;
     Ok(())
