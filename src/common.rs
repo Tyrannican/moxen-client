@@ -29,20 +29,14 @@ impl std::fmt::Display for MoxenError {
 
 pub fn create_project_dir() -> Result<PathBuf> {
     let subfolders = vec!["package"];
-    if DEBUG {
-        let current_dir = std::env::current_dir()?.join(".moxen");
-        for sf in subfolders.into_iter() {
-            let dir = current_dir.join(sf);
-            if !dir.exists() {
-                std::fs::create_dir_all(&dir)?;
-            }
-        }
-
-        return Ok(current_dir);
-    }
 
     if let Some(home) = dirs::home_dir() {
-        let project_dir = home.join(".moxen");
+        let current_dir = std::env::current_dir()?;
+        let project_dir = if DEBUG {
+            current_dir.join(".moxen")
+        } else {
+            home.join(".moxen")
+        };
         for sf in subfolders.into_iter() {
             let dir = project_dir.join(sf);
             if !dir.exists() {
