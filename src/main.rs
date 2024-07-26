@@ -14,6 +14,9 @@ async fn main() -> Result<()> {
     let mut pkg_mgr = Manager::new(cli.directory);
 
     match cli.commands {
+        Commands::New { name } => {
+            pkg_mgr.new_project(name)?;
+        }
         Commands::Info => {
             pkg_mgr.load()?;
             pkg_mgr.info()?;

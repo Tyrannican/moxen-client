@@ -2,11 +2,11 @@ pub mod manifest;
 pub mod package;
 pub mod publish;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use std::path::PathBuf;
 
 use crate::common::{create_project_dir, MoxenError};
-use manifest::{load_manifest, PackageManifest};
+use manifest::PackageManifest;
 use package::package_content;
 
 pub struct Manager {
@@ -31,8 +31,23 @@ impl Manager {
         }
     }
 
+    pub fn new_project(&mut self, name: String) -> Result<()> {
+        let project_path = self.src_dir.join(&name);
+        if !project_path.exists() {
+            std::fs::create_dir_all(&project_path).context("creating new project directory")?;
+        }
+        self.src_dir = project_path;
+        let manifest = PackageManifest::fresh(&name);
+        manifest.write(&self.src_dir)?;
+
+        // Write out a start.lua and name.toc
+        println!("Created new Mox package `{name}`");
+
+        Ok(())
+    }
+
     pub fn load(&mut self) -> Result<()> {
-        self.manifest = Some(load_manifest(&self.src_dir)?);
+        self.manifest = Some(PackageManifest::load(&self.src_dir)?);
         Ok(())
     }
 

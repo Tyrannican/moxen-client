@@ -9,7 +9,7 @@ use std::{fmt, fs, path::Path};
 
 const MANIFEST: &'static str = "Moxen.toml";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PackageManifest {
     pub mox: Metadata,
     pub collection: Option<PackageCollection>,
@@ -41,6 +41,49 @@ pub struct NormalizedManifest {
 
 #[allow(dead_code)]
 impl PackageManifest {
+    pub fn load(dir: impl AsRef<Path>) -> Result<Self> {
+        let contents =
+            fs::read_to_string(dir.as_ref().join(MANIFEST)).context("reading manifest file");
+
+        match contents {
+            Ok(contents) => {
+                let manifest: PackageManifest =
+                    toml::from_str(&contents).context("deserializing manifest file")?;
+
+                Ok(manifest)
+            }
+            Err(err) => {
+                eprintln!("No Moxen.toml file found in project root: {err}");
+                anyhow::bail!(MoxenError::MissingManifestFile);
+            }
+        }
+    }
+
+    pub fn fresh(name: &str) -> Self {
+        let manifest = Self {
+            mox: Metadata {
+                name: name.to_string(),
+                version: Some("0.1.0".to_string()),
+                description: "New World of Warcraft addon".to_string(),
+                wow_version: "<Insert current WoW version here (11.0.1)!>".to_string(),
+                authors: vec![],
+                homepage: None,
+                repository: None,
+            },
+            collection: None,
+        };
+
+        manifest
+    }
+
+    pub fn write(&self, dir: impl AsRef<Path>) -> Result<()> {
+        let manifest = dir.as_ref().join(MANIFEST);
+        let str_contents = toml::to_string(&self)?;
+        std::fs::write(manifest, str_contents)?;
+
+        Ok(())
+    }
+
     pub fn normalise_name(&self) -> String {
         let mut name = self.mox.name.to_lowercase().replace(" ", "-");
         name.push('-');
@@ -100,20 +143,11 @@ impl fmt::Display for PackageManifest {
         Ok(())
     }
 }
+la
+pub fn bootstrap_lua(dir: impl AsRef<Path>) -> Result<()> {
+    Ok(())
+}
 
-pub fn load_manifest(dir: impl AsRef<Path>) -> Result<PackageManifest> {
-    let contents = fs::read_to_string(dir.as_ref().join(MANIFEST)).context("reading manifest file");
-
-    match contents {
-        Ok(contents) => {
-            let manifest: PackageManifest =
-                toml::from_str(&contents).context("deserializing manifest file")?;
-
-            Ok(manifest)
-        }
-        Err(err) => {
-            eprintln!("No Moxen.toml file found in project root: {err}");
-            anyhow::bail!(MoxenError::MissingManifestFile);
-        }
-    }
+pub fn bootstrap_toc(dir: impl AsRef<Path>) -> Result<()> {
+    Ok(())
 }

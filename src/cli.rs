@@ -11,6 +11,10 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    New {
+        /// Name of the new project
+        name: String,
+    },
     Info,
     Package,
     Publish,
