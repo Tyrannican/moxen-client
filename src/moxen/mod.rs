@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use std::path::PathBuf;
 
 use crate::common::{create_project_dir, MoxenError};
-use manifest::PackageManifest;
+use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 
 pub struct Manager {
@@ -35,12 +35,16 @@ impl Manager {
         let project_path = self.src_dir.join(&name);
         if !project_path.exists() {
             std::fs::create_dir_all(&project_path).context("creating new project directory")?;
+        } else {
+            eprintln!("A project with the name `{name}` already exists!");
+            anyhow::bail!(MoxenError::ProjectAlreadyExists);
         }
         self.src_dir = project_path;
         let manifest = PackageManifest::fresh(&name);
         manifest.write(&self.src_dir)?;
 
-        // Write out a start.lua and name.toc
+        bootstrap_lua(&self.src_dir)?;
+        bootstrap_toc(&self.src_dir, &manifest)?;
         println!("Created new Mox package `{name}`");
 
         Ok(())

@@ -1,7 +1,7 @@
 use crate::common::MoxenError;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{fmt, fs, path::Path};
+use std::{fmt, fs, io::Write, path::Path};
 
 // TODO: Add Categories
 // TODO: Add support for Collections (e.g. DBM, etc.)
@@ -143,11 +143,39 @@ impl fmt::Display for PackageManifest {
         Ok(())
     }
 }
-la
+
 pub fn bootstrap_lua(dir: impl AsRef<Path>) -> Result<()> {
+    let lua_path = dir.as_ref().join("start.lua");
+    let mut f = std::fs::File::create(lua_path)?;
+    f.write_all("print('Hello, World!')\n".as_bytes())?;
     Ok(())
 }
 
-pub fn bootstrap_toc(dir: impl AsRef<Path>) -> Result<()> {
+pub fn bootstrap_toc(dir: impl AsRef<Path>, manifest: &PackageManifest) -> Result<()> {
+    let mox = &manifest.mox;
+    let mut normalised_name = mox.name.replace(" ", "");
+    normalised_name.push_str(".toc");
+    let toc_path = dir.as_ref().join(normalised_name);
+    let mut f = std::fs::File::create(toc_path)?;
+
+    f.write(
+        format!("## Interface: <Current World of Warcraft Version Here (e.g. 110001)>\n")
+            .as_bytes(),
+    )?;
+    let mox_version = if let Some(version) = &mox.version {
+        version
+    } else {
+        &"0.1.0".to_string()
+    };
+    f.write(format!("## Version: {mox_version}\n").as_bytes())?;
+
+    f.write(format!("## Title: {}\n", mox.name).as_bytes())?;
+    f.write("## Notes: Created with Moxen\n".as_bytes())?;
+
+    let author = mox.authors.join(",");
+    f.write(format!("## Author: {author}\n").as_bytes())?;
+    f.write("\n".as_bytes())?;
+    f.write("start.lua\n".as_bytes())?;
+
     Ok(())
 }
