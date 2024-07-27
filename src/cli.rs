@@ -30,6 +30,9 @@ pub enum Commands {
     /// Publish a Moxen project to the registry
     Publish,
 
+    /// Add a Moxen.toml manifest to an existing project
+    Convert,
+
     /// Clean any packaged artifacts
     Clean,
 }

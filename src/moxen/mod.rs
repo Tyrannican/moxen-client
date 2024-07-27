@@ -31,7 +31,7 @@ impl Manager {
         }
     }
 
-    pub fn new_project(&mut self, name: String) -> Result<()> {
+    pub fn bootstrap(&mut self, name: String) -> Result<()> {
         let project_path = self.src_dir.join(&name);
         if !project_path.exists() {
             std::fs::create_dir_all(&project_path).context("creating new project directory")?;
@@ -73,6 +73,25 @@ impl Manager {
 
     pub async fn publish(&self) -> Result<()> {
         println!("Publishing package!");
+        Ok(())
+    }
+
+    pub async fn add_manifest(&self) -> Result<()> {
+        match self.src_dir.file_name() {
+            Some(dir) => {
+                // This should always be fine
+                let name = dir.to_str().unwrap();
+                let manifest = PackageManifest::fresh(name);
+                manifest.write(&self.src_dir)?;
+            }
+            None => {
+                eprintln!(
+                    "cannot determine folder name / location at: {}",
+                    self.src_dir.display()
+                );
+                anyhow::bail!(MoxenError::GeneralError("invalid directory".to_string()))
+            }
+        }
         Ok(())
     }
 

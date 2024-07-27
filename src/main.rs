@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
 
     match cli.commands {
         Commands::New { name } => {
-            pkg_mgr.new_project(name)?;
+            pkg_mgr.bootstrap(name)?;
         }
         Commands::Info => {
             pkg_mgr.load()?;
@@ -27,6 +27,9 @@ async fn main() -> Result<()> {
         }
         Commands::Publish => {
             pkg_mgr.publish().await?;
+        }
+        Commands::Convert => {
+            pkg_mgr.add_manifest().await?;
         }
         Commands::Clean => {
             pkg_mgr.clean()?;
