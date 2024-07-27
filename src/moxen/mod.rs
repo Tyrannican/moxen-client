@@ -64,9 +64,9 @@ impl Manager {
         Ok(())
     }
 
-    pub async fn package(&self) -> Result<()> {
+    pub fn package(&self) -> Result<()> {
         match &self.manifest {
-            Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir).await,
+            Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir),
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
     }
@@ -76,7 +76,8 @@ impl Manager {
         Ok(())
     }
 
-    pub async fn add_manifest(&self) -> Result<()> {
+    // TODO: Improve name and capabilities
+    pub fn add_manifest(&self) -> Result<()> {
         match self.src_dir.file_name() {
             Some(dir) => {
                 // This should always be fine

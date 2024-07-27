@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use super::manifest::PackageManifest;
 
 // TODO: Better logging of the packaging step
-pub async fn package_content(
+pub fn package_content(
     manifest: &PackageManifest,
     src_path: &PathBuf,
     mox_path: &PathBuf,

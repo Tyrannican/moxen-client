@@ -23,13 +23,13 @@ async fn main() -> Result<()> {
         }
         Commands::Package => {
             pkg_mgr.load()?;
-            pkg_mgr.package().await?;
+            pkg_mgr.package()?;
         }
         Commands::Publish => {
             pkg_mgr.publish().await?;
         }
         Commands::Convert => {
-            pkg_mgr.add_manifest().await?;
+            pkg_mgr.add_manifest()?;
         }
         Commands::Clean => {
             pkg_mgr.clean()?;
