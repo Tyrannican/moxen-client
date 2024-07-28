@@ -28,8 +28,8 @@ async fn main() -> Result<()> {
         Commands::Publish => {
             pkg_mgr.publish().await?;
         }
-        Commands::Convert => {
-            pkg_mgr.add_manifest()?;
+        Commands::Moxify => {
+            pkg_mgr.convert_to_mox()?;
         }
         Commands::Clean => {
             pkg_mgr.clean()?;

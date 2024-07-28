@@ -77,12 +77,12 @@ impl Manager {
     }
 
     // TODO: Improve name and capabilities
-    pub fn add_manifest(&self) -> Result<()> {
+    pub fn convert_to_mox(&self) -> Result<()> {
         match self.src_dir.file_name() {
             Some(dir) => {
                 // This should always be fine
                 let name = dir.to_str().unwrap();
-                let manifest = PackageManifest::fresh(name);
+                let mut manifest = PackageManifest::fresh(name);
                 manifest.write(&self.src_dir)?;
             }
             None => {

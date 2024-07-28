@@ -31,7 +31,7 @@ pub enum Commands {
     Publish,
 
     /// Add a Moxen.toml manifest to an existing project
-    Convert,
+    Moxify,
 
     /// Clean any packaged artifacts
     Clean,

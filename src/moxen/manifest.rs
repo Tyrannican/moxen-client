@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, fs, io::Write, path::Path};
 
 // TODO: Add Categories
-// TODO: Add support for Collections (e.g. DBM, etc.)
 // TODO: Add support for Libraries (e.g. AceConsole, etc)
 
 const MANIFEST: &'static str = "Moxen.toml";
@@ -21,6 +20,7 @@ pub struct Metadata {
     pub version: Option<String>,
     pub wow_version: String,
     pub description: String,
+    pub categories: Option<Vec<MoxCategory>>,
     pub authors: Vec<String>,
     pub homepage: Option<String>,
     pub repository: Option<String>,
@@ -37,6 +37,41 @@ pub struct NormalizedManifest {
     version: Option<String>,
     wow_version: String,
     cksum: String,
+}
+
+#[derive(Debug, Copy, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MoxCategory {
+    Achievements,
+    ActionBars,
+    Artwork,
+    AuctionEconomy,
+    AudioVideo,
+    BagsInventory,
+    BossEncounters,
+    BuffsDebuffs,
+    ChatCommunication,
+    Class,
+    Combat,
+    Companions,
+    DataExport,
+    DevelopmentTools,
+    Garrison,
+    Guild,
+    Libraries,
+    Mail,
+    MapMinimap,
+    Minigames,
+    #[default]
+    Miscellaneous,
+    Plugins,
+    Professions,
+    Pvp,
+    QuestsLevelling,
+    Roleplay,
+    Tooltip,
+    TwitchIntegration,
+    UnitFrames,
 }
 
 #[allow(dead_code)]
@@ -64,8 +99,9 @@ impl PackageManifest {
             mox: Metadata {
                 name: name.to_string(),
                 version: Some("0.1.0".to_string()),
-                description: "New World of Warcraft addon".to_string(),
+                description: "Bootstrapped by Moxen".to_string(),
                 wow_version: "<Insert current WoW version here (11.0.1)!>".to_string(),
+                categories: Some(vec![]),
                 authors: vec![],
                 homepage: None,
                 repository: None,
@@ -123,6 +159,15 @@ impl fmt::Display for PackageManifest {
             writeln!(f, "- {author}")?;
         }
 
+        if let Some(categories) = &addon.categories {
+            if !categories.is_empty() {
+                writeln!(f, "Categories:")?;
+            }
+            for category in categories.iter() {
+                writeln!(f, "- {category}")?;
+            }
+        }
+
         if let Some(homepage) = &addon.homepage {
             writeln!(f, "Home: {homepage}")?;
         }
@@ -141,6 +186,42 @@ impl fmt::Display for PackageManifest {
         writeln!(f, "------")?;
 
         Ok(())
+    }
+}
+
+impl std::fmt::Display for MoxCategory {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Self::Achievements => write!(f, "Achievements"),
+            Self::ActionBars => write!(f, "Action Bars"),
+            Self::Artwork => write!(f, "Artwork"),
+            Self::AuctionEconomy => write!(f, "Auction & Economy"),
+            Self::AudioVideo => write!(f, "Audio & Visual"),
+            Self::BagsInventory => write!(f, "Bags & Inventory"),
+            Self::BossEncounters => write!(f, "Boss Encounters"),
+            Self::BuffsDebuffs => write!(f, "Buffs & Debuffs"),
+            Self::ChatCommunication => write!(f, "Chat & Communication"),
+            Self::Class => write!(f, "Class"),
+            Self::Combat => write!(f, "Combat"),
+            Self::Companions => write!(f, "Companions"),
+            Self::DataExport => write!(f, "Data Export"),
+            Self::DevelopmentTools => write!(f, "Development Tools"),
+            Self::Garrison => write!(f, "Garrison"),
+            Self::Guild => write!(f, "Guild"),
+            Self::Libraries => write!(f, "Libraries"),
+            Self::Mail => write!(f, "Mail"),
+            Self::MapMinimap => write!(f, "Map & Minimap"),
+            Self::Minigames => write!(f, "Minigames"),
+            Self::Miscellaneous => write!(f, "Miscellaneous"),
+            Self::Plugins => write!(f, "Plugins"),
+            Self::Professions => write!(f, "Professions"),
+            Self::Pvp => write!(f, "PvP"),
+            Self::QuestsLevelling => write!(f, "Quests & Levelling"),
+            Self::Roleplay => write!(f, "Roleplay"),
+            Self::Tooltip => write!(f, "Tooltip"),
+            Self::TwitchIntegration => write!(f, "Twitch Integration"),
+            Self::UnitFrames => write!(f, "Unit Frames"),
+        }
     }
 }
 

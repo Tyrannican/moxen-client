@@ -6,3 +6,4 @@ description = "Test configuration for a Moxen project"
 homepage = "https://example.com"
 authors = ["Firstname LastName <email@email.com>"]
 repository = "https://github.com/link-to-repo"
+categories = ["boss-encounters", "pvp"]
