@@ -3,8 +3,8 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{fmt, fs, io::Write, path::Path};
 
-// TODO: Add Categories
 // TODO: Add support for Libraries (e.g. AceConsole, etc)
+// (^^^ when the registry is in place)
 
 const MANIFEST: &'static str = "Moxen.toml";
 
