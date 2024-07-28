@@ -82,8 +82,9 @@ impl Manager {
             Some(dir) => {
                 // This should always be fine
                 let name = dir.to_str().unwrap();
-                let mut manifest = PackageManifest::fresh(name);
+                let manifest = PackageManifest::fresh(name);
                 manifest.write(&self.src_dir)?;
+                println!("Bootstrapped new mox: {name}");
             }
             None => {
                 eprintln!(
@@ -93,6 +94,7 @@ impl Manager {
                 anyhow::bail!(MoxenError::GeneralError("invalid directory".to_string()))
             }
         }
+
         Ok(())
     }
 

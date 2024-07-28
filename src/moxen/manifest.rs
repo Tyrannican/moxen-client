@@ -154,9 +154,12 @@ impl fmt::Display for PackageManifest {
         }
         writeln!(f, "World of Warcraft Version: {}", addon.wow_version)?;
         writeln!(f, "Addon Description: \"{}\"", addon.description)?;
-        writeln!(f, "Authors:")?;
-        for author in &addon.authors {
-            writeln!(f, "- {author}")?;
+
+        if !&addon.authors.is_empty() {
+            writeln!(f, "Authors:")?;
+            for author in &addon.authors {
+                writeln!(f, "- {author}")?;
+            }
         }
 
         if let Some(categories) = &addon.categories {
