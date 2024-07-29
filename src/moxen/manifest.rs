@@ -36,6 +36,7 @@ pub struct NormalizedManifest {
     name: String,
     version: Option<String>,
     wow_version: String,
+    categories: Vec<MoxCategory>,
     cksum: String,
 }
 
@@ -101,7 +102,7 @@ impl PackageManifest {
                 version: Some("0.1.0".to_string()),
                 description: "Bootstrapped by Moxen".to_string(),
                 wow_version: "<Insert current WoW version here (11.0.1)!>".to_string(),
-                categories: Some(vec![]),
+                categories: Some(vec![MoxCategory::Miscellaneous]),
                 authors: vec![],
                 homepage: None,
                 repository: None,
@@ -134,10 +135,22 @@ impl PackageManifest {
 
     pub fn normalise(self, cksum: String) -> NormalizedManifest {
         let name = self.normalise_name();
+        let categories = match self.mox.categories {
+            Some(cat) => {
+                if !cat.is_empty() {
+                    cat
+                } else {
+                    vec![MoxCategory::Miscellaneous]
+                }
+            }
+            None => vec![MoxCategory::Miscellaneous],
+        };
+
         NormalizedManifest {
             name,
             version: self.mox.version,
             wow_version: self.mox.wow_version,
+            categories,
             cksum,
         }
     }
