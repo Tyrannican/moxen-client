@@ -26,6 +26,7 @@ async fn main() -> Result<()> {
             pkg_mgr.package()?;
         }
         Commands::Publish => {
+            pkg_mgr.load()?;
             pkg_mgr.publish().await?;
         }
         Commands::Moxify => {

@@ -9,7 +9,7 @@ pub fn package_content(
     manifest: &PackageManifest,
     src_path: &PathBuf,
     mox_path: &PathBuf,
-) -> Result<()> {
+) -> Result<PathBuf> {
     let name = manifest.normalise_name();
     println!("Packaging {} as {}...", src_path.display(), name);
     let package_target_path = mox_path.join("package").join(&name);
@@ -38,7 +38,7 @@ pub fn package_content(
 
     package_mox(src_path, &package_target_path, &compressed_target_path)?;
     println!("Crafted {}!", compressed_target_path.display());
-    Ok(())
+    Ok(compressed_target_path)
 }
 
 fn package_mox(

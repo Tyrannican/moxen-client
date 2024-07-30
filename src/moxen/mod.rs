@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use crate::common::{create_project_dir, MoxenError};
 use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
+use publish::publish_package;
 
 pub struct Manager {
     mox_dir: PathBuf,
@@ -64,15 +65,19 @@ impl Manager {
         Ok(())
     }
 
-    pub fn package(&self) -> Result<()> {
+    pub fn package(&self) -> Result<PathBuf> {
         match &self.manifest {
             Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir),
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
     }
 
-    pub async fn publish(&self) -> Result<()> {
-        println!("Publishing package!");
+    pub async fn publish(self) -> Result<()> {
+        let pkg_path = self.package()?;
+        match self.manifest {
+            Some(manifest) => publish_package(manifest, pkg_path).await?,
+            None => {}
+        }
         Ok(())
     }
 
