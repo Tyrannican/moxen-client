@@ -121,8 +121,12 @@ impl PackageManifest {
         Ok(())
     }
 
-    pub fn normalise_name(&self) -> String {
+    pub fn normalise_name(&self, with_version: bool) -> String {
         let mut name = self.mox.name.to_lowercase().replace(" ", "-");
+        if !with_version {
+            return name;
+        }
+
         name.push('-');
         if let Some(version) = &self.mox.version {
             name.push_str(&version);
@@ -134,7 +138,7 @@ impl PackageManifest {
     }
 
     pub fn normalise(self, cksum: String) -> NormalizedManifest {
-        let name = self.normalise_name();
+        let name = self.normalise_name(false);
         let categories = match self.mox.categories {
             Some(cat) => {
                 if !cat.is_empty() {

@@ -10,7 +10,7 @@ pub fn package_content(
     src_path: &PathBuf,
     mox_path: &PathBuf,
 ) -> Result<PathBuf> {
-    let name = manifest.normalise_name();
+    let name = manifest.normalise_name(true);
     println!("Packaging {} as {}...", src_path.display(), name);
     let package_target_path = mox_path.join("package").join(&name);
     let compressed_target_path = mox_path.join("package").join(&format!("{name}.mox"));
