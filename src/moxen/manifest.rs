@@ -24,6 +24,7 @@ pub struct Metadata {
     pub authors: Vec<String>,
     pub homepage: Option<String>,
     pub repository: Option<String>,
+    pub dependencies: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,7 +60,7 @@ pub enum MoxCategory {
     DevelopmentTools,
     Garrison,
     Guild,
-    Libraries,
+    Library,
     Mail,
     MapMinimap,
     Minigames,
@@ -106,6 +107,7 @@ impl PackageManifest {
                 authors: vec![],
                 homepage: None,
                 repository: None,
+                dependencies: None,
             },
             collection: None,
         };
@@ -156,6 +158,18 @@ impl PackageManifest {
             wow_version: self.mox.wow_version,
             categories,
             cksum,
+        }
+    }
+
+    pub fn add_dependency(&mut self, dep: String) {
+        if let Some(deps) = self.mox.dependencies.as_mut() {
+            if deps.contains(&dep) {
+                return;
+            }
+            deps.push(dep);
+        } else {
+            let deps = vec![dep];
+            self.mox.dependencies = Some(deps);
         }
     }
 }
@@ -228,7 +242,7 @@ impl std::fmt::Display for MoxCategory {
             Self::DevelopmentTools => write!(f, "Development Tools"),
             Self::Garrison => write!(f, "Garrison"),
             Self::Guild => write!(f, "Guild"),
-            Self::Libraries => write!(f, "Libraries"),
+            Self::Library => write!(f, "Library"),
             Self::Mail => write!(f, "Mail"),
             Self::MapMinimap => write!(f, "Map & Minimap"),
             Self::Minigames => write!(f, "Minigames"),

@@ -21,6 +21,13 @@ pub enum Commands {
         name: String,
     },
 
+    /// Add a library as a dependency of this addon
+    Add {
+        /// Name of the library to add
+        #[clap(value_delimiter = ' ')]
+        names: Vec<String>,
+    },
+
     /// Display information about a Moxen project
     Info,
 

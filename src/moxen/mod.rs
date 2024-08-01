@@ -1,3 +1,4 @@
+pub mod api;
 pub mod manifest;
 pub mod package;
 pub mod publish;
@@ -5,7 +6,7 @@ pub mod publish;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
-use crate::common::{create_project_dir, MoxenError};
+use crate::common::{create_project_dir, untarball, MoxenError};
 use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
@@ -98,6 +99,45 @@ impl Manager {
                 );
                 anyhow::bail!(MoxenError::GeneralError("invalid directory".to_string()))
             }
+        }
+
+        Ok(())
+    }
+
+    // TODO: Clean up clone mess here
+    pub async fn download_dependencies(&mut self, deps: Vec<String>) -> Result<()> {
+        let mut handles = vec![];
+        let deps_copy = deps.clone();
+
+        for dep in deps.into_iter() {
+            let src_dir = self.src_dir.clone();
+            let hdl = tokio::task::spawn(async move {
+                let libs_dir = src_dir.join(format!("libs/{dep}"));
+                if libs_dir.exists() {
+                    return Ok(());
+                } else {
+                    std::fs::create_dir_all(&libs_dir)?;
+                }
+
+                let data = match api::fetch_mox(&dep).await {
+                    Ok(data) => data,
+                    Err(err) => anyhow::bail!(err),
+                };
+
+                untarball(&libs_dir, data)?;
+
+                Ok(())
+            });
+            handles.push(hdl);
+        }
+
+        for hdl in handles {
+            let _ = hdl.await?;
+        }
+
+        let manifest = self.manifest.as_mut().unwrap();
+        for dep in deps_copy {
+            manifest.add_dependency(dep);
         }
 
         Ok(())

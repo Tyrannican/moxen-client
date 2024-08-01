@@ -1,6 +1,5 @@
-use crate::common::{gather_files, MoxenError};
+use crate::common::{gather_files, tarball, MoxenError};
 use anyhow::Result;
-use flate2::{write::GzEncoder, Compression};
 use std::path::PathBuf;
 
 use super::manifest::PackageManifest;
@@ -77,10 +76,7 @@ fn create_tarball(
         std::fs::copy(&file, dst)?;
     }
 
-    let output = std::fs::File::create(&compressed_target_path)?;
-    let enc = GzEncoder::new(output, Compression::default());
-    let mut tar = tar::Builder::new(enc);
-    tar.append_dir_all(".", package_target_path)?;
+    tarball(package_target_path, &compressed_target_path)?;
 
     Ok(())
 }

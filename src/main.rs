@@ -17,6 +17,10 @@ async fn main() -> Result<()> {
         Commands::New { name } => {
             pkg_mgr.bootstrap(name)?;
         }
+        Commands::Add { names } => {
+            pkg_mgr.load()?;
+            pkg_mgr.download_dependencies(names).await?;
+        }
         Commands::Info => {
             pkg_mgr.load()?;
             pkg_mgr.info()?;

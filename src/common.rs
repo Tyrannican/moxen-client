@@ -1,5 +1,7 @@
 use anyhow::Result;
+use flate2::{read::GzDecoder, write::GzEncoder, Compression};
 use std::path::{Path, PathBuf};
+use tar::Archive;
 
 const DEBUG: bool = true;
 const INVALID_FILETYPE: [&'static str; 6] = ["exe", "c", "cpp", "rs", "js", "cs"];
@@ -11,6 +13,7 @@ pub enum MoxenError {
     MissingManifestFile,
     InvalidFileExtension(String),
     ProjectAlreadyExists,
+    ProjectNotFound,
     GeneralError(String),
 }
 
@@ -23,6 +26,7 @@ impl std::fmt::Display for MoxenError {
             Self::MissingTocFile => writeln!(f, "missing required toc file"),
             Self::MissingManifestFile => writeln!(f, "missing Moxen.toml file"),
             Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found: {ext}"),
+            Self::ProjectNotFound => writeln!(f, "project not found"),
             Self::ProjectAlreadyExists => writeln!(f, "project already exists"),
             Self::GeneralError(err) => writeln!(f, "{err}"),
         }
@@ -87,5 +91,20 @@ fn iterdir(dir: impl AsRef<Path>, collector: &mut Vec<PathBuf>) -> Result<()> {
         }
     }
 
+    Ok(())
+}
+
+pub fn tarball(src: &PathBuf, dst: &PathBuf) -> Result<()> {
+    let output = std::fs::File::create(&dst)?;
+    let enc = GzEncoder::new(output, Compression::default());
+    let mut tar = tar::Builder::new(enc);
+    tar.append_dir_all(".", src)?;
+    Ok(())
+}
+
+pub fn untarball(path: &PathBuf, data: Vec<u8>) -> Result<()> {
+    let tar = GzDecoder::new(data.as_slice());
+    let mut archive = Archive::new(tar);
+    archive.unpack(&path)?;
     Ok(())
 }
