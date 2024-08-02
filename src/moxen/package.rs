@@ -14,11 +14,14 @@ pub fn package_content(
     let package_target_path = mox_path.join("package").join(&name);
     let compressed_target_path = mox_path.join("package").join(&format!("{name}.mox"));
     if !check_for_toc(&src_path) {
-        eprintln!(
-            "A TOC file at the project root {} is needed for an Addon.",
-            src_path.display()
-        );
-        anyhow::bail!(MoxenError::MissingTocFile);
+        eprintln!("No TOC file present, searching subdirectories...");
+        if !find_any_toc(&src_path) {
+            eprintln!(
+                "Cannot find a TOC file in the project: {}!",
+                src_path.display()
+            );
+            anyhow::bail!(MoxenError::MissingTocFile);
+        }
     }
 
     package_mox(src_path, &package_target_path, &compressed_target_path)?;
@@ -37,13 +40,22 @@ fn package_mox(
 }
 
 fn check_for_toc(cwd: &PathBuf) -> bool {
-    let entries: Vec<_> = glob::glob(cwd.join("*.toc").to_str().unwrap())
+    let toc = glob::glob(cwd.join("*.toc").to_str().unwrap())
         .unwrap()
         .into_iter()
-        .map(|e| e.unwrap())
-        .collect();
+        .count();
 
-    !entries.is_empty()
+    toc != 0
+}
+
+// TODO: This could be better
+fn find_any_toc(cwd: &PathBuf) -> bool {
+    let tocs = glob::glob(cwd.join("**/*.toc").to_str().unwrap())
+        .unwrap()
+        .into_iter()
+        .count();
+
+    tocs != 0
 }
 
 fn create_tarball(

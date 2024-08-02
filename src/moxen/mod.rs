@@ -88,7 +88,8 @@ impl Manager {
             Some(dir) => {
                 // This should always be fine
                 let name = dir.to_str().unwrap();
-                let manifest = PackageManifest::fresh(name);
+                // let manifest = PackageManifest::fresh(name);
+                let manifest = PackageManifest::interactive(name);
                 manifest.write(&self.src_dir)?;
                 println!("Bootstrapped new mox: {name}");
             }
@@ -115,18 +116,22 @@ impl Manager {
                 let libs_dir = src_dir.join(format!("libs/{dep}"));
                 if libs_dir.exists() {
                     return Ok(());
-                } else {
-                    std::fs::create_dir_all(&libs_dir)?;
                 }
 
-                println!("Adding {dep} to {}", libs_dir.display());
                 let data = match api::fetch_mox(&dep).await {
                     Ok(data) => data,
-                    Err(err) => anyhow::bail!(err),
+                    Err(err) => {
+                        eprintln!("Error: {err}");
+                        anyhow::bail!(err);
+                    }
                 };
 
+                if !libs_dir.exists() {
+                    std::fs::create_dir_all(&libs_dir)?;
+                }
                 untarball(&libs_dir, data)?;
 
+                println!("Adding {dep} to {}", libs_dir.display());
                 Ok(())
             });
             handles.push(hdl);

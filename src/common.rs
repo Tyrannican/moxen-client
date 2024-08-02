@@ -13,7 +13,7 @@ pub enum MoxenError {
     MissingManifestFile,
     InvalidFileExtension(String),
     ProjectAlreadyExists,
-    ProjectNotFound,
+    ProjectNotFound(String),
     GeneralError(String),
 }
 
@@ -25,8 +25,8 @@ impl std::fmt::Display for MoxenError {
             Self::ManifestNotLoaded => writeln!(f, "Moxen.toml manifest is not loaded"),
             Self::MissingTocFile => writeln!(f, "missing required toc file"),
             Self::MissingManifestFile => writeln!(f, "missing Moxen.toml file"),
-            Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found: {ext}"),
-            Self::ProjectNotFound => writeln!(f, "project not found"),
+            Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found - {ext}"),
+            Self::ProjectNotFound(pkg) => writeln!(f, "project not found in registry - {pkg}"),
             Self::ProjectAlreadyExists => writeln!(f, "project already exists"),
             Self::GeneralError(err) => writeln!(f, "{err}"),
         }

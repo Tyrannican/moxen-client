@@ -15,7 +15,7 @@ pub async fn fetch_mox(name: &str) -> Result<Vec<u8>> {
             let data = response.bytes().await?;
             return Ok(data.to_vec());
         }
-        StatusCode::NOT_FOUND => Err(MoxenError::ProjectNotFound.into()),
+        StatusCode::NOT_FOUND => Err(MoxenError::ProjectNotFound(name.to_string()).into()),
         _ => {
             let text = response.text().await?;
             return Err(MoxenError::GeneralError(text).into());

@@ -3,15 +3,11 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{fmt, fs, io::Write, path::Path};
 
-// TODO: Add support for Libraries (e.g. AceConsole, etc)
-// (^^^ when the registry is in place)
-
 const MANIFEST: &'static str = "Moxen.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PackageManifest {
     pub mox: Metadata,
-    pub collection: Option<PackageCollection>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,11 +21,6 @@ pub struct Metadata {
     pub homepage: Option<String>,
     pub repository: Option<String>,
     pub dependencies: Option<Vec<String>>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PackageCollection {
-    pub members: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -109,8 +100,36 @@ impl PackageManifest {
                 repository: None,
                 dependencies: None,
             },
-            collection: None,
         };
+
+        manifest
+    }
+
+    pub fn interactive(name: &str) -> PackageManifest {
+        println!("Creating Moxen.toml ({name})...");
+        let mut manifest = Self::fresh(name);
+        let version = get_user_input("Addon Version");
+        manifest.mox.version = Some(version);
+
+        let description = get_user_input("Addon Description");
+        manifest.mox.description = description;
+
+        let wow_version = get_user_input("WoW version (e.g. 11.0.1)");
+        manifest.mox.wow_version = wow_version;
+
+        let authors = get_user_input("Authors (separated by ,)");
+        let authors = authors.split(',').map(|a| a.trim().to_owned()).collect();
+        manifest.mox.authors = authors;
+
+        let homepage = get_user_input("Homepage (optional)");
+        if !homepage.is_empty() {
+            manifest.mox.homepage = Some(homepage);
+        }
+
+        let repository = get_user_input("Repository (git, svn, etc. - optional)");
+        if !repository.is_empty() {
+            manifest.mox.repository = Some(repository);
+        }
 
         manifest
     }
@@ -174,6 +193,16 @@ impl PackageManifest {
     }
 }
 
+fn get_user_input(msg: &str) -> String {
+    let mut buf = String::new();
+    print!("{msg}: ");
+    let stdin = std::io::stdin();
+    let _ = std::io::stdout().flush();
+    stdin.read_line(&mut buf).expect("unable to parse stdin");
+
+    buf.trim().to_owned()
+}
+
 impl fmt::Display for PackageManifest {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let addon = &self.mox;
@@ -208,13 +237,6 @@ impl fmt::Display for PackageManifest {
 
         if let Some(repo) = &addon.repository {
             writeln!(f, "Source Code: {repo}")?;
-        }
-
-        if let Some(collection) = &self.collection {
-            writeln!(f, "\nCollection:")?;
-            for item in collection.members.iter() {
-                writeln!(f, "- {item}")?;
-            }
         }
 
         writeln!(f, "------")?;

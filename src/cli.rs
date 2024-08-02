@@ -21,9 +21,9 @@ pub enum Commands {
         name: String,
     },
 
-    /// Add a library as a dependency of this addon
+    /// Add a package as a dependency of this addon/library
     Add {
-        /// Name of the library to add
+        /// Name of the package to add
         #[clap(value_delimiter = ' ')]
         names: Vec<String>,
     },
