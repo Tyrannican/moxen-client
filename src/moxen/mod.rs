@@ -1,4 +1,5 @@
 pub mod api;
+pub mod download;
 pub mod manifest;
 pub mod package;
 pub mod publish;
@@ -6,8 +7,8 @@ pub mod publish;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
-use crate::common::{create_project_dir, untarball, validate_package_checksum, MoxenError};
-use manifest::{bootstrap_lua, bootstrap_toc, NormalizedManifest, PackageManifest};
+use crate::common::{create_project_dir, MoxenError};
+use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
 
@@ -113,35 +114,7 @@ impl Manager {
         for dep in deps.into_iter() {
             let src_dir = self.src_dir.clone();
             let hdl = tokio::task::spawn(async move {
-                let libs_dir = src_dir.join(format!("libs/{dep}"));
-                if libs_dir.exists() {
-                    return Ok(());
-                }
-
-                let (manifest, package) = match api::fetch_mox(&dep).await {
-                    Ok((manifest, package)) => (manifest, package),
-                    Err(err) => {
-                        eprintln!("Error: {err}");
-                        anyhow::bail!(err);
-                    }
-                };
-                let manifest = toml::from_str::<NormalizedManifest>(&manifest)?;
-
-                match validate_package_checksum(&package, &manifest.cksum) {
-                    Ok(()) => {}
-                    Err(error) => {
-                        eprintln!("{error}");
-                        anyhow::bail!(error);
-                    }
-                }
-
-                if !libs_dir.exists() {
-                    std::fs::create_dir_all(&libs_dir)?;
-                }
-                untarball(&libs_dir, package)?;
-
-                println!("Adding {dep} to {}", libs_dir.display());
-                Ok(())
+                download::download_dependency(src_dir, dep.clone()).await
             });
             handles.push(hdl);
         }

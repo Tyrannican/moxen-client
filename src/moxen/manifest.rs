@@ -3,7 +3,7 @@ use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{fmt, fs, io::Write, path::Path};
 
-const MANIFEST: &'static str = "Moxen.toml";
+static MANIFEST: &str = "Moxen.toml";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PackageManifest {
