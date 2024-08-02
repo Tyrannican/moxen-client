@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
+use reqwest::Client;
 use reqwest::StatusCode;
 use serde::Deserialize;
 
@@ -15,7 +18,7 @@ pub struct DownloadPackageResponse {
 
 pub async fn fetch_mox(name: &str) -> Result<(String, Vec<u8>)> {
     let url = format!("{API_URL}/api/v1/mox/{name}");
-    let client = reqwest::Client::new();
+    let client = Client::new();
 
     let response = client.get(url).send().await?;
     let status = response.status();
@@ -33,6 +36,21 @@ pub async fn fetch_mox(name: &str) -> Result<(String, Vec<u8>)> {
         _ => {
             let error_message = response.error.unwrap();
             return Err(MoxenError::GeneralError(error_message).into());
+        }
+    }
+}
+
+pub async fn publish_mox_package(body: HashMap<String, String>) -> Result<()> {
+    let client = Client::new();
+    let url = format!("{API_URL}/api/v1/mox/new");
+    let response = client.post(url).json(&body).send().await?;
+    let status = response.status();
+    match status {
+        StatusCode::CREATED => Ok(()),
+        StatusCode::CONFLICT => Err(MoxenError::ProjectAlreadyExists.into()),
+        _ => {
+            let text = response.text().await?;
+            return Err(MoxenError::GeneralError(text).into());
         }
     }
 }

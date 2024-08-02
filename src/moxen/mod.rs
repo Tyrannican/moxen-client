@@ -89,7 +89,6 @@ impl Manager {
             Some(dir) => {
                 // This should always be fine
                 let name = dir.to_str().unwrap();
-                // let manifest = PackageManifest::fresh(name);
                 let manifest = PackageManifest::interactive(name);
                 manifest.write(&self.src_dir)?;
                 println!("Bootstrapped new mox: {name}");

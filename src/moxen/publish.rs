@@ -4,7 +4,10 @@ use sha1::{Digest, Sha1};
 
 use std::{collections::HashMap, path::PathBuf};
 
-use super::manifest::{NormalizedManifest, PackageManifest};
+use super::{
+    api::{self, publish_mox_package},
+    manifest::{NormalizedManifest, PackageManifest},
+};
 
 const PUBLISH_URL: &str = "http://localhost:9000/api/v1/mox/new";
 
@@ -43,9 +46,10 @@ fn create_request_body(
 
 async fn send_request(manifest: NormalizedManifest, pkg: Vec<u8>) -> Result<()> {
     let req_body = create_request_body(manifest, pkg)?;
-    let client = reqwest::Client::new();
+    match api::publish_mox_package(req_body).await {
+        Ok(()) => println!("Package published successfully!"),
+        Err(e) => anyhow::bail!(e),
+    }
 
-    let response = client.post(PUBLISH_URL).json(&req_body).send().await?;
-    println!("Response: {}", response.text().await?);
     Ok(())
 }
