@@ -6,8 +6,8 @@ pub mod publish;
 use anyhow::{Context, Result};
 use std::path::PathBuf;
 
-use crate::common::{create_project_dir, untarball, MoxenError};
-use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
+use crate::common::{create_project_dir, untarball, validate_package_checksum, MoxenError};
+use manifest::{bootstrap_lua, bootstrap_toc, NormalizedManifest, PackageManifest};
 use package::package_content;
 use publish::publish_package;
 
@@ -118,18 +118,27 @@ impl Manager {
                     return Ok(());
                 }
 
-                let data = match api::fetch_mox(&dep).await {
-                    Ok(data) => data,
+                let (manifest, package) = match api::fetch_mox(&dep).await {
+                    Ok((manifest, package)) => (manifest, package),
                     Err(err) => {
                         eprintln!("Error: {err}");
                         anyhow::bail!(err);
                     }
                 };
+                let manifest = toml::from_str::<NormalizedManifest>(&manifest)?;
+
+                match validate_package_checksum(&package, &manifest.cksum) {
+                    Ok(()) => {}
+                    Err(error) => {
+                        eprintln!("{error}");
+                        anyhow::bail!(error);
+                    }
+                }
 
                 if !libs_dir.exists() {
                     std::fs::create_dir_all(&libs_dir)?;
                 }
-                untarball(&libs_dir, data)?;
+                untarball(&libs_dir, package)?;
 
                 println!("Adding {dep} to {}", libs_dir.display());
                 Ok(())

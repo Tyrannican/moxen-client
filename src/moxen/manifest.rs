@@ -25,11 +25,11 @@ pub struct Metadata {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NormalizedManifest {
-    name: String,
-    version: Option<String>,
-    wow_version: String,
-    categories: Vec<MoxCategory>,
-    cksum: String,
+    pub name: String,
+    pub version: Option<String>,
+    pub wow_version: String,
+    pub categories: Vec<MoxCategory>,
+    pub cksum: String,
 }
 
 #[derive(Debug, Copy, Clone, Default, Serialize, Deserialize)]

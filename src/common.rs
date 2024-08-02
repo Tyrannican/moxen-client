@@ -1,5 +1,6 @@
 use anyhow::Result;
 use flate2::{read::GzDecoder, write::GzEncoder, Compression};
+use sha1::{Digest, Sha1};
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
@@ -14,6 +15,7 @@ pub enum MoxenError {
     InvalidFileExtension(String),
     ProjectAlreadyExists,
     ProjectNotFound(String),
+    ChecksumFailure((String, String)),
     GeneralError(String),
 }
 
@@ -28,6 +30,9 @@ impl std::fmt::Display for MoxenError {
             Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found - {ext}"),
             Self::ProjectNotFound(pkg) => writeln!(f, "project not found in registry - {pkg}"),
             Self::ProjectAlreadyExists => writeln!(f, "project already exists"),
+            Self::ChecksumFailure((chk1, chk2)) => {
+                writeln!(f, "checksum failure: {chk1} doesn't match expected {chk2}")
+            }
             Self::GeneralError(err) => writeln!(f, "{err}"),
         }
     }
@@ -107,4 +112,15 @@ pub fn untarball(path: &PathBuf, data: Vec<u8>) -> Result<()> {
     let mut archive = Archive::new(tar);
     archive.unpack(&path)?;
     Ok(())
+}
+
+pub fn validate_package_checksum(data: &Vec<u8>, checksum: &str) -> Result<(), MoxenError> {
+    let mut hasher = Sha1::new();
+    hasher.update(data);
+    let check = hex::encode(hasher.finalize());
+    if check == checksum {
+        Ok(())
+    } else {
+        Err(MoxenError::ChecksumFailure((check, checksum.to_string())))
+    }
 }
