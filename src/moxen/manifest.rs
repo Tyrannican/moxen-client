@@ -21,6 +21,7 @@ pub struct Metadata {
     pub homepage: Option<String>,
     pub repository: Option<String>,
     pub dependencies: Option<Vec<String>>,
+    pub ignore: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -99,6 +100,7 @@ impl PackageManifest {
                 homepage: None,
                 repository: None,
                 dependencies: None,
+                ignore: None,
             },
         };
 

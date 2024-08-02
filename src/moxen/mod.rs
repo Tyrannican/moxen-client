@@ -69,7 +69,10 @@ impl Manager {
 
     pub fn package(&self) -> Result<PathBuf> {
         match &self.manifest {
-            Some(manifest) => package_content(&manifest, &self.src_dir, &self.mox_dir),
+            Some(manifest) => {
+                let ignore_list = self.generate_ignore_list();
+                return package_content(&manifest, &self.src_dir, &self.mox_dir, ignore_list);
+            }
             None => anyhow::bail!(MoxenError::ManifestNotLoaded),
         }
     }
@@ -134,5 +137,38 @@ impl Manager {
     pub fn clean(&self) -> Result<()> {
         std::fs::remove_dir_all(&self.mox_dir)?;
         Ok(())
+    }
+
+    fn generate_ignore_list(&self) -> Option<Vec<PathBuf>> {
+        let mut inner = vec![];
+
+        let manifest = self.manifest.as_ref().unwrap();
+        match &manifest.mox.ignore {
+            Some(items) => {
+                let globs: Vec<String> = items
+                    .into_iter()
+                    .map(|item| {
+                        self.src_dir
+                            .join(item)
+                            .to_str()
+                            .expect("unable to convert ignore path")
+                            .to_owned()
+                    })
+                    .collect();
+
+                for pattern in globs.into_iter() {
+                    let entries = glob::glob(&pattern)
+                        .unwrap()
+                        .into_iter()
+                        .map(|c| c.unwrap())
+                        .collect::<Vec<PathBuf>>();
+
+                    inner.extend(entries);
+                }
+
+                return Some(inner);
+            }
+            None => None,
+        }
     }
 }

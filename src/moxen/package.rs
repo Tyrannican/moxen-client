@@ -8,6 +8,7 @@ pub fn package_content(
     manifest: &PackageManifest,
     src_path: &PathBuf,
     mox_path: &PathBuf,
+    ignore_list: Option<Vec<PathBuf>>,
 ) -> Result<PathBuf> {
     let name = manifest.normalise_name(true);
     println!("Packaging {} as {}...", src_path.display(), name);
@@ -24,7 +25,12 @@ pub fn package_content(
         }
     }
 
-    package_mox(src_path, &package_target_path, &compressed_target_path)?;
+    package_mox(
+        src_path,
+        &package_target_path,
+        &compressed_target_path,
+        ignore_list,
+    )?;
     println!("Crafted {}!", compressed_target_path.display());
     Ok(compressed_target_path)
 }
@@ -33,8 +39,20 @@ fn package_mox(
     src_path: &PathBuf,
     dst_path: &PathBuf,
     compressed_dst_path: &PathBuf,
+    ignore_list: Option<Vec<PathBuf>>,
 ) -> Result<()> {
-    let files = gather_files(&src_path)?;
+    let mut files = gather_files(&src_path)?;
+    if let Some(ignore) = ignore_list {
+        files = files
+            .into_iter()
+            .filter_map(|f| {
+                if ignore.contains(&f) {
+                    return None;
+                }
+                Some(f)
+            })
+            .collect();
+    }
     create_tarball(&src_path, files, dst_path, compressed_dst_path)?;
     Ok(())
 }
