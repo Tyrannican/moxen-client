@@ -131,7 +131,7 @@ impl PackageManifest {
 
         name.push('-');
         if let Some(version) = &self.mox.version {
-            name.push_str(&version);
+            name.push_str(&version.to_lowercase());
         } else {
             name.push_str(&self.mox.wow_version);
         }

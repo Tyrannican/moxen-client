@@ -1,9 +1,10 @@
 [mox]
 name = "Test Mox Config"
 version = "0.1.0"
-wow_version= "11.0.1"
+wow_version = "11.0.1"
 description = "Test configuration for a Moxen project"
-homepage = "https://example.com"
-authors = ["Firstname LastName <email@email.com>"]
-repository = "https://github.com/link-to-repo"
 categories = ["boss-encounters", "library"]
+authors = ["Firstname LastName <email@email.com>"]
+homepage = "https://example.com"
+repository = "https://github.com/link-to-repo"
+dependencies = ["libsharedmedia-3.0", "ace3"]

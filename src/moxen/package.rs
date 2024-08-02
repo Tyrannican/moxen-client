@@ -13,26 +13,12 @@ pub fn package_content(
     println!("Packaging {} as {}...", src_path.display(), name);
     let package_target_path = mox_path.join("package").join(&name);
     let compressed_target_path = mox_path.join("package").join(&format!("{name}.mox"));
-
-    if let Some(collection) = &manifest.collection {
-        for item in collection.members.iter() {
-            let item_path = src_path.join(item);
-            if !check_for_toc(&item_path) {
-                eprintln!(
-                    "A TOC file in the root of {} is needed.",
-                    item_path.display()
-                );
-                anyhow::bail!(MoxenError::MissingTocFile);
-            }
-        }
-    } else {
-        if !check_for_toc(&src_path) {
-            eprintln!(
-                "A TOC file at the project root {} is needed for an Addon.",
-                src_path.display()
-            );
-            anyhow::bail!(MoxenError::MissingTocFile);
-        }
+    if !check_for_toc(&src_path) {
+        eprintln!(
+            "A TOC file at the project root {} is needed for an Addon.",
+            src_path.display()
+        );
+        anyhow::bail!(MoxenError::MissingTocFile);
     }
 
     package_mox(src_path, &package_target_path, &compressed_target_path)?;

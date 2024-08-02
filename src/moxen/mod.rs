@@ -119,6 +119,7 @@ impl Manager {
                     std::fs::create_dir_all(&libs_dir)?;
                 }
 
+                println!("Adding {dep} to {}", libs_dir.display());
                 let data = match api::fetch_mox(&dep).await {
                     Ok(data) => data,
                     Err(err) => anyhow::bail!(err),
@@ -139,6 +140,7 @@ impl Manager {
         for dep in deps_copy {
             manifest.add_dependency(dep);
         }
+        manifest.write(&self.src_dir)?;
 
         Ok(())
     }
