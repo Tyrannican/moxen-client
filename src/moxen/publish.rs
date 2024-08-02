@@ -5,18 +5,18 @@ use sha1::{Digest, Sha1};
 use std::{collections::HashMap, path::PathBuf};
 
 use super::{
-    api::{self, publish_mox_package},
+    api,
     manifest::{NormalizedManifest, PackageManifest},
 };
 
-const PUBLISH_URL: &str = "http://localhost:9000/api/v1/mox/new";
-
 pub async fn publish_package(manifest: PackageManifest, pkg_path: PathBuf) -> Result<()> {
-    // Check if it exists first
-
     let (cksum, pkg) = generate_checksum(&pkg_path)?;
     let normalised = manifest.normalise(cksum);
-    send_request(normalised, pkg).await?;
+    let req_body = create_request_body(normalised, pkg)?;
+    match api::publish_mox_package(req_body).await {
+        Ok(()) => println!("Package published successfully!"),
+        Err(e) => anyhow::bail!(e),
+    }
 
     Ok(())
 }
@@ -42,14 +42,4 @@ fn create_request_body(
     body.insert("package".to_string(), pkg);
 
     Ok(body)
-}
-
-async fn send_request(manifest: NormalizedManifest, pkg: Vec<u8>) -> Result<()> {
-    let req_body = create_request_body(manifest, pkg)?;
-    match api::publish_mox_package(req_body).await {
-        Ok(()) => println!("Package published successfully!"),
-        Err(e) => anyhow::bail!(e),
-    }
-
-    Ok(())
 }
