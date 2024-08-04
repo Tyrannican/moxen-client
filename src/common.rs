@@ -9,7 +9,6 @@ const INVALID_FILETYPE: [&'static str; 6] = ["exe", "c", "cpp", "rs", "js", "cs"
 
 #[derive(Debug)]
 pub enum MoxenError {
-    ManifestNotLoaded,
     MissingTocFile,
     MissingManifestFile,
     InvalidFileExtension(String),
@@ -24,7 +23,6 @@ impl std::error::Error for MoxenError {}
 impl std::fmt::Display for MoxenError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ManifestNotLoaded => writeln!(f, "Moxen.toml manifest is not loaded"),
             Self::MissingTocFile => writeln!(f, "missing required toc file"),
             Self::MissingManifestFile => writeln!(f, "missing Moxen.toml file"),
             Self::InvalidFileExtension(ext) => writeln!(f, "invalid file extension found - {ext}"),

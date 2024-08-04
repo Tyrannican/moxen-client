@@ -15,22 +15,31 @@ use publish::publish_package;
 pub struct Manager {
     mox_dir: PathBuf,
     src_dir: PathBuf,
-    manifest: Option<PackageManifest>,
+    manifest: PackageManifest,
 }
 
+// TODO: Set the current directory to either the supplied dir or the current dir
+// That way we can get rid of the Option for the manifest and load it directly
 impl Manager {
     pub fn new(target_dir: Option<String>) -> Self {
         let dir = if let Some(dir) = target_dir {
             PathBuf::from(dir)
+                .canonicalize()
+                .expect("error canonicalising path")
         } else {
-            std::env::current_dir().expect("unable to get current directory")
+            std::env::current_dir()
+                .expect("unable to get current directory")
+                .canonicalize()
+                .expect("error canonicalising path")
         };
 
+        std::env::set_current_dir(&dir).expect("error setting current directory");
         let mox_dir = create_project_dir().expect("cannot create project directory");
+        let manifest = PackageManifest::load(&dir).expect("error loading package manifest");
         Self {
             mox_dir,
             src_dir: dir,
-            manifest: None,
+            manifest,
         }
     }
 
@@ -53,37 +62,18 @@ impl Manager {
         Ok(())
     }
 
-    pub fn load(&mut self) -> Result<()> {
-        self.manifest = Some(PackageManifest::load(&self.src_dir)?);
-        Ok(())
-    }
-
-    pub fn info(&self) -> Result<()> {
-        match &self.manifest {
-            Some(manifest) => println!("{manifest}"),
-            None => anyhow::bail!(MoxenError::ManifestNotLoaded),
-        }
-
-        Ok(())
+    pub fn info(&self) {
+        println!("{}", self.manifest);
     }
 
     pub fn package(&self) -> Result<PathBuf> {
-        match &self.manifest {
-            Some(manifest) => {
-                let ignore_list = self.generate_ignore_list();
-                return package_content(&manifest, &self.src_dir, &self.mox_dir, ignore_list);
-            }
-            None => anyhow::bail!(MoxenError::ManifestNotLoaded),
-        }
+        let ignore_list = self.generate_ignore_list();
+        return package_content(&self.manifest, &self.src_dir, &self.mox_dir, ignore_list);
     }
 
     pub async fn publish(self) -> Result<()> {
         let pkg_path = self.package()?;
-        match self.manifest {
-            Some(manifest) => publish_package(manifest, pkg_path).await?,
-            None => {}
-        }
-        Ok(())
+        publish_package(self.manifest, pkg_path).await
     }
 
     // TODO: Improve name and capabilities
@@ -125,11 +115,11 @@ impl Manager {
             let _ = hdl.await?;
         }
 
-        let manifest = self.manifest.as_mut().unwrap();
         for dep in deps_copy {
-            manifest.add_dependency(dep);
+            self.manifest.add_dependency(dep);
         }
-        manifest.write(&self.src_dir)?;
+
+        self.manifest.write(&self.src_dir)?;
 
         Ok(())
     }
@@ -142,8 +132,7 @@ impl Manager {
     fn generate_ignore_list(&self) -> Option<Vec<PathBuf>> {
         let mut inner = vec![];
 
-        let manifest = self.manifest.as_ref().unwrap();
-        match &manifest.mox.ignore {
+        match &self.manifest.mox.ignore {
             Some(items) => {
                 let globs: Vec<String> = items
                     .into_iter()
