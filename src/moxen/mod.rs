@@ -6,6 +6,7 @@ pub mod publish;
 
 use anyhow::{Context, Result};
 use std::path::PathBuf;
+use tokio::sync::mpsc::channel;
 
 use crate::common::{create_project_dir, MoxenError};
 use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
@@ -80,8 +81,7 @@ impl Manager {
     pub fn convert_to_mox(&self) -> Result<()> {
         match self.src_dir.file_name() {
             Some(dir) => {
-                // This should always be fine
-                let name = dir.to_str().unwrap();
+                let name = dir.to_str().unwrap_or("Moxen Addon");
                 let manifest = PackageManifest::interactive(name);
                 manifest.write(&self.src_dir)?;
                 println!("Bootstrapped new mox: {name}");
@@ -100,23 +100,23 @@ impl Manager {
 
     // TODO: Clean up clone mess here
     pub async fn download_dependencies(&mut self, deps: Vec<String>) -> Result<()> {
-        let mut handles = vec![];
-        let deps_copy = deps.clone();
-
+        let size = deps.len();
+        let (tx, mut rx) = channel(size);
         for dep in deps.into_iter() {
             let src_dir = self.src_dir.clone();
-            let hdl = tokio::task::spawn(async move {
-                download::download_dependency(src_dir, dep.clone()).await
+            let sender = tx.clone();
+            tokio::task::spawn(async move {
+                if let Ok(_) = download::download_dependency(src_dir, &dep).await {
+                    if let Err(_) = sender.send(dep).await {
+                        eprintln!("dep receiver dropped");
+                    }
+                }
             });
-            handles.push(hdl);
         }
+        drop(tx);
 
-        for hdl in handles {
-            let _ = hdl.await?;
-        }
-
-        for dep in deps_copy {
-            self.manifest.add_dependency(dep);
+        while let Some(dep) = rx.recv().await {
+            self.manifest.add_dependency(dep.to_owned());
         }
 
         self.manifest.write(&self.src_dir)?;

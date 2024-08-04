@@ -6,7 +6,7 @@ use crate::{
     moxen::{api, manifest::NormalizedManifest},
 };
 
-pub async fn download_dependency(src_dir: PathBuf, dep: String) -> Result<()> {
+pub async fn download_dependency(src_dir: PathBuf, dep: &str) -> Result<()> {
     let libs_dir = src_dir.join(format!("libs/{dep}"));
     if libs_dir.exists() {
         return Ok(());
