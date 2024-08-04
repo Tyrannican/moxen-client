@@ -12,7 +12,7 @@ use super::{
 pub async fn publish_package(manifest: PackageManifest, pkg_path: PathBuf) -> Result<()> {
     let (cksum, pkg) = generate_checksum(&pkg_path)?;
     let normalised = manifest.normalise(cksum);
-    let req_body = create_request_body(normalised, pkg)?;
+    let req_body = create_request_body(normalised, &pkg)?;
     match api::publish_mox_package(req_body).await {
         Ok(()) => println!("Package published successfully!"),
         Err(e) => anyhow::bail!(e),
@@ -32,7 +32,7 @@ fn generate_checksum(file: &PathBuf) -> Result<(String, Vec<u8>)> {
 
 fn create_request_body(
     manifest: NormalizedManifest,
-    pkg: Vec<u8>,
+    pkg: &[u8],
 ) -> Result<HashMap<String, String>> {
     let mut body = HashMap::new();
     let manifest_as_str = toml::to_string(&manifest)?;
