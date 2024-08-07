@@ -1,10 +1,12 @@
 pub mod api;
+pub mod config;
 pub mod download;
 pub mod manifest;
 pub mod package;
 pub mod publish;
 
 use anyhow::{Context, Result};
+use config::MoxenConfig;
 use std::path::PathBuf;
 use tokio::sync::mpsc::channel;
 
@@ -13,14 +15,15 @@ use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
 
+// TODO: Find a use for the config
+#[allow(dead_code)]
 pub struct Manager {
     mox_dir: PathBuf,
     src_dir: PathBuf,
     manifest: PackageManifest,
+    config: MoxenConfig,
 }
 
-// TODO: Set the current directory to either the supplied dir or the current dir
-// That way we can get rid of the Option for the manifest and load it directly
 impl Manager {
     pub fn new(target_dir: Option<String>) -> Self {
         let dir = if let Some(dir) = target_dir {
@@ -34,13 +37,18 @@ impl Manager {
                 .expect("error canonicalising path")
         };
 
+        // TODO: Replace these with MoxenError handling
         std::env::set_current_dir(&dir).expect("error setting current directory");
         let mox_dir = create_project_dir().expect("cannot create project directory");
+        let config = MoxenConfig::load(&mox_dir).expect("unable to load moxen config");
         let manifest = PackageManifest::load(&dir).expect("error loading package manifest");
+        println!("Config loaded: {config:?}");
+
         Self {
             mox_dir,
             src_dir: dir,
             manifest,
+            config,
         }
     }
 

@@ -15,6 +15,8 @@ pub enum MoxenError {
     ProjectAlreadyExists,
     ProjectNotFound(String),
     ChecksumFailure((String, String)),
+    ConfigError(String),
+    LoadError(String),
     GeneralError(String),
 }
 
@@ -30,6 +32,10 @@ impl std::fmt::Display for MoxenError {
             Self::ProjectAlreadyExists => writeln!(f, "project already exists"),
             Self::ChecksumFailure((chk1, chk2)) => {
                 writeln!(f, "checksum failure: {chk1} doesn't match expected {chk2}")
+            }
+            Self::LoadError(err) => writeln!(f, "error loading file: {err}"),
+            Self::ConfigError(err) => {
+                writeln!(f, "config error parsing Moxen content: {err}")
             }
             Self::GeneralError(err) => writeln!(f, "{err}"),
         }
