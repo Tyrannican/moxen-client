@@ -37,6 +37,12 @@ pub enum Commands {
     /// Publish a Moxen project to the registry
     Publish,
 
+    /// Register to the Moxen registry
+    Register {
+        /// Username for the registry
+        name: String,
+    },
+
     /// Add a Moxen.toml manifest to an existing project
     Moxify,
 

@@ -20,6 +20,7 @@ async fn main() -> Result<()> {
         Commands::Package => {
             pkg_mgr.package()?;
         }
+        Commands::Register { name } => pkg_mgr.register(name).await?,
         Commands::Publish => pkg_mgr.publish().await?,
         Commands::Moxify => pkg_mgr.convert_to_mox()?,
         Commands::Clean => pkg_mgr.clean()?,

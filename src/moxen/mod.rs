@@ -1,4 +1,5 @@
 pub mod api;
+pub mod auth;
 pub mod config;
 pub mod download;
 pub mod manifest;
@@ -42,7 +43,6 @@ impl Manager {
         let mox_dir = create_project_dir().expect("cannot create project directory");
         let config = MoxenConfig::load(&mox_dir).expect("unable to load moxen config");
         let manifest = PackageManifest::load(&dir).expect("error loading package manifest");
-        println!("Config loaded: {config:?}");
 
         Self {
             mox_dir,
@@ -106,7 +106,6 @@ impl Manager {
         Ok(())
     }
 
-    // TODO: Clean up clone mess here
     pub async fn download_dependencies(&mut self, deps: Vec<String>) -> Result<()> {
         let size = deps.len();
         let (tx, mut rx) = channel(size);
@@ -128,6 +127,35 @@ impl Manager {
         }
 
         self.manifest.write(&self.src_dir)?;
+
+        Ok(())
+    }
+
+    pub async fn register(&mut self, name: String) -> Result<()> {
+        auth::validate_username(&name)?;
+        let keypair = auth::generate_keyfile_pair(&mut self.config)?;
+        let public_key = keypair.public_key_as_string();
+        let challenge_string = api::signup(&name, &public_key).await?;
+        let signed_challenge = keypair.sign_message(challenge_string);
+        let (api_key, recovery_codes) = api::signup_challenge(signed_challenge).await?;
+        match &mut self.config.credentials {
+            Some(creds) => {
+                creds.api_key = Some(api_key);
+                self.config.write()?;
+            }
+            None => unreachable!("this is always set on successful generation of keypair"),
+        }
+
+        println!("--- Moxen Registration ---\n");
+        println!("You are now signed up to the Moxen Registry as '{name}'!");
+        println!(
+            "Here are your recovery codes if you ever lose your API key (STORE THESE SOMEWHERE SAFE!)\n"
+        );
+        for code in recovery_codes {
+            println!("{code}");
+        }
+        println!("\nIf you lose these codes, you may lose access to your account and ability to publish!");
+        println!("\n------");
 
         Ok(())
     }
