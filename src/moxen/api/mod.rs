@@ -35,14 +35,26 @@ pub async fn fetch_mox(name: &str) -> Result<(String, Vec<u8>)> {
     }
 }
 
-pub async fn publish_mox_package(body: HashMap<String, String>) -> Result<()> {
+pub async fn publish_mox_package(
+    body: HashMap<String, String>,
+    api_key: &str,
+    username: &str,
+) -> Result<()> {
     let client = Client::new();
     let url = format!("{API_URL}/api/v1/mox/new");
-    let response = client.post(url).json(&body).send().await?;
+    let response = client
+        .post(url)
+        .json(&body)
+        .header("x-api-key", api_key)
+        .header("x-authorize-user", username)
+        .send()
+        .await?;
+
     let status = response.status();
     match status {
         StatusCode::CREATED => Ok(()),
         StatusCode::CONFLICT => Err(MoxenError::ProjectAlreadyExists.into()),
+        StatusCode::UNAUTHORIZED => Err(MoxenError::ApiError("invalid api key".to_string()).into()),
         _ => {
             let text = response.text().await?;
             return Err(MoxenError::ApiError(text).into());

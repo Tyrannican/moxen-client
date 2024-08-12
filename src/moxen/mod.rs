@@ -39,9 +39,9 @@ impl Manager {
         };
 
         // TODO: Replace these with MoxenError handling
-        std::env::set_current_dir(&dir).expect("error setting current directory");
         let mox_dir = create_project_dir().expect("cannot create project directory");
         let config = MoxenConfig::load(&mox_dir).expect("unable to load moxen config");
+        std::env::set_current_dir(&dir).expect("error setting current directory");
         let manifest = PackageManifest::load(&dir).expect("error loading package manifest");
 
         Self {
@@ -81,8 +81,23 @@ impl Manager {
     }
 
     pub async fn publish(self) -> Result<()> {
-        let pkg_path = self.package()?;
-        publish_package(self.manifest, pkg_path).await
+        match self.config.credentials {
+            Some(ref credentials) => {
+                let pkg_path = self.package()?;
+                if let Some(api_key) = &credentials.api_key {
+                    publish_package(self.manifest, pkg_path, api_key, &credentials.username).await
+                } else {
+                    eprintln!(
+                        "No API Key present. You may need to re-register for another API Key"
+                    );
+                    return Err(MoxenError::GeneralError("missing api key".to_string()).into());
+                }
+            }
+            None => {
+                eprintln!("No saved credentials present. You must signup to the Moxen Registry!");
+                return Err(MoxenError::GeneralError("missing credentials".to_string()).into());
+            }
+        }
     }
 
     // TODO: Improve name and capabilities
@@ -142,6 +157,7 @@ impl Manager {
         match &mut self.config.credentials {
             Some(creds) => {
                 creds.api_key = Some(api_key.clone());
+                creds.username = name.clone();
                 self.config.write()?;
             }
             None => unreachable!("this is always set on successful generation of keypair"),

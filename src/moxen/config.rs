@@ -13,6 +13,7 @@ pub struct MoxenConfig {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct MoxenCredentials {
+    pub username: String,
     pub private_key: String,
     pub api_key: Option<String>,
 }

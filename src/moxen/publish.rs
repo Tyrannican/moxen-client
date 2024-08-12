@@ -9,11 +9,16 @@ use super::{
     manifest::{NormalizedManifest, PackageManifest},
 };
 
-pub async fn publish_package(manifest: PackageManifest, pkg_path: PathBuf) -> Result<()> {
+pub async fn publish_package(
+    manifest: PackageManifest,
+    pkg_path: PathBuf,
+    api_key: &str,
+    username: &str,
+) -> Result<()> {
     let (cksum, pkg) = generate_checksum(&pkg_path)?;
     let normalised = manifest.normalise(cksum);
     let req_body = create_request_body(normalised, &pkg)?;
-    match api::publish_mox_package(req_body).await {
+    match api::publish_mox_package(req_body, api_key, username).await {
         Ok(()) => println!("Package published successfully!"),
         Err(e) => anyhow::bail!(e),
     }

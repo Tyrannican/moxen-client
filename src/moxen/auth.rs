@@ -82,6 +82,7 @@ pub fn generate_keyfile_pair(config: &mut MoxenConfig) -> Result<MoxenKeyPair, M
 
             let private_key = BASE64_STANDARD.encode(document.as_ref());
             let credentials = MoxenCredentials {
+                username: "".to_string(),
                 private_key,
                 api_key: None,
             };
