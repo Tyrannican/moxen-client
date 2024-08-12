@@ -57,6 +57,7 @@ pub async fn signup(name: &str, pub_key: &str) -> Result<String> {
     body.insert("name", name);
     body.insert("key", pub_key);
 
+    println!("Sending request to {url}");
     let response = client.post(url).json(&body).send().await?;
     let status = response.status();
     let text = response.text().await?;
@@ -66,10 +67,14 @@ pub async fn signup(name: &str, pub_key: &str) -> Result<String> {
     }
 }
 
-pub async fn signup_challenge(challenge: String) -> Result<(String, Vec<String>)> {
+pub async fn signup_challenge(
+    original: String,
+    challenge: String,
+) -> Result<(String, Vec<String>)> {
     let client = Client::new();
     let url = format!("{API_URL}/api/v1/auth/register/challenge");
     let mut body = HashMap::new();
+    body.insert("original", original);
     body.insert("challenge", challenge);
 
     let response = client.post(url).json(&body).send().await?;
@@ -77,7 +82,7 @@ pub async fn signup_challenge(challenge: String) -> Result<(String, Vec<String>)
     let data = response.json::<UserRegisterResponse>().await?;
 
     match status {
-        StatusCode::OK => Ok((data.api_key, data.recovery_codes)),
+        StatusCode::CREATED => Ok((data.api_key, data.recovery_codes)),
         _ => {
             let error = data.error.unwrap();
             return Err(MoxenError::ApiError(error).into());

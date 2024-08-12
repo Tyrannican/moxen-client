@@ -15,6 +15,7 @@ pub struct MoxenKeyPair {
     prv_key: Ed25519KeyPair,
 }
 
+#[allow(dead_code)]
 impl MoxenKeyPair {
     pub fn new(pkcs8_raw: &[u8]) -> Result<Self, MoxenError> {
         let keypair = Ed25519KeyPair::from_pkcs8(pkcs8_raw)
@@ -38,7 +39,7 @@ impl MoxenKeyPair {
         BASE64_STANDARD.encode(self.prv_key.public_key().as_ref())
     }
 
-    pub fn sign_message(&self, msg: String) -> String {
+    pub fn sign_message(&self, msg: &str) -> String {
         let sig = self.prv_key.sign(msg.as_bytes());
         BASE64_STANDARD.encode(sig.as_ref())
     }

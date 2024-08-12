@@ -89,7 +89,7 @@ impl Manager {
     pub fn convert_to_mox(&self) -> Result<()> {
         match self.src_dir.file_name() {
             Some(dir) => {
-                let name = dir.to_str().unwrap_or("Moxen Addon");
+                let name = dir.to_str().unwrap_or("Moxen Package");
                 let manifest = PackageManifest::interactive(name);
                 manifest.write(&self.src_dir)?;
                 println!("Bootstrapped new mox: {name}");
@@ -136,11 +136,12 @@ impl Manager {
         let keypair = auth::generate_keyfile_pair(&mut self.config)?;
         let public_key = keypair.public_key_as_string();
         let challenge_string = api::signup(&name, &public_key).await?;
-        let signed_challenge = keypair.sign_message(challenge_string);
-        let (api_key, recovery_codes) = api::signup_challenge(signed_challenge).await?;
+        let signed_challenge = keypair.sign_message(&challenge_string);
+        let (api_key, recovery_codes) =
+            api::signup_challenge(challenge_string, signed_challenge).await?;
         match &mut self.config.credentials {
             Some(creds) => {
-                creds.api_key = Some(api_key);
+                creds.api_key = Some(api_key.clone());
                 self.config.write()?;
             }
             None => unreachable!("this is always set on successful generation of keypair"),
@@ -148,6 +149,7 @@ impl Manager {
 
         println!("--- Moxen Registration ---\n");
         println!("You are now signed up to the Moxen Registry as '{name}'!");
+        println!("\nAPI Key: {api_key}\n");
         println!(
             "Here are your recovery codes if you ever lose your API key (STORE THESE SOMEWHERE SAFE!)\n"
         );
