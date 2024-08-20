@@ -16,7 +16,6 @@ use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
 
-// TODO: Find a use for the config
 #[allow(dead_code)]
 pub struct Manager {
     mox_dir: PathBuf,
@@ -26,7 +25,7 @@ pub struct Manager {
 }
 
 impl Manager {
-    pub fn new(target_dir: Option<String>) -> Self {
+    pub fn new(target_dir: Option<String>) -> Result<Self, MoxenError> {
         let dir = if let Some(dir) = target_dir {
             PathBuf::from(dir)
                 .canonicalize()
@@ -38,18 +37,32 @@ impl Manager {
                 .expect("error canonicalising path")
         };
 
-        // TODO: Replace these with MoxenError handling
-        let mox_dir = create_project_dir().expect("cannot create project directory");
-        let config = MoxenConfig::load(&mox_dir).expect("unable to load moxen config");
-        std::env::set_current_dir(&dir).expect("error setting current directory");
-        let manifest = PackageManifest::load(&dir).expect("error loading package manifest");
+        let mox_dir = create_project_dir().map_err(|e| MoxenError::GeneralError(e.to_string()))?;
+        let config = MoxenConfig::load(&mox_dir).map_err(|e| {
+            MoxenError::LoadError(format!(
+                "could not load Moxen config file - {}",
+                e.to_string()
+            ))
+        })?;
+        std::env::set_current_dir(&dir).map_err(|e| {
+            MoxenError::GeneralError(format!(
+                "could not set current directory - {}",
+                e.to_string()
+            ))
+        })?;
+        let manifest = PackageManifest::load(&dir).map_err(|e| {
+            MoxenError::LoadError(format!(
+                "could not load Moxen.toml manifest - {}",
+                e.to_string()
+            ))
+        })?;
 
-        Self {
+        Ok(Self {
             mox_dir,
             src_dir: dir,
             manifest,
             config,
-        }
+        })
     }
 
     pub fn bootstrap(&mut self, name: String) -> Result<()> {

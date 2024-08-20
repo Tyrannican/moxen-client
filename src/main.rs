@@ -11,7 +11,7 @@ use moxen::Manager;
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
-    let mut pkg_mgr = Manager::new(cli.directory);
+    let mut pkg_mgr = Manager::new(cli.directory)?;
 
     match cli.commands {
         Commands::New { name } => pkg_mgr.bootstrap(name)?,
