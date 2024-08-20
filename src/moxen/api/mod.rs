@@ -62,14 +62,13 @@ pub async fn publish_mox_package(
     }
 }
 
-pub async fn signup(name: &str, pub_key: &str) -> Result<String> {
+pub async fn generate_challenge(name: &str, pub_key: &str) -> Result<String> {
     let client = Client::new();
-    let url = format!("{API_URL}/api/v1/auth/register");
+    let url = format!("{API_URL}/api/v1/auth/challenge");
     let mut body = HashMap::new();
     body.insert("name", name);
     body.insert("key", pub_key);
 
-    println!("Sending request to {url}");
     let response = client.post(url).json(&body).send().await?;
     let status = response.status();
     let text = response.text().await?;
@@ -79,12 +78,9 @@ pub async fn signup(name: &str, pub_key: &str) -> Result<String> {
     }
 }
 
-pub async fn signup_challenge(
-    original: String,
-    challenge: String,
-) -> Result<(String, Vec<String>)> {
+pub async fn signup(original: String, challenge: String) -> Result<(String, Vec<String>)> {
     let client = Client::new();
-    let url = format!("{API_URL}/api/v1/auth/register/challenge");
+    let url = format!("{API_URL}/api/v1/auth/register");
     let mut body = HashMap::new();
     body.insert("original", original);
     body.insert("challenge", challenge);

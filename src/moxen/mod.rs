@@ -160,13 +160,13 @@ impl Manager {
     }
 
     pub async fn register(&mut self, name: String) -> Result<()> {
+        println!("Registering to Moxen Register as {name}...\n");
         auth::validate_username(&name)?;
         let keypair = auth::generate_keyfile_pair(&mut self.config)?;
         let public_key = keypair.public_key_as_string();
-        let challenge_string = api::signup(&name, &public_key).await?;
+        let challenge_string = api::generate_challenge(&name, &public_key).await?;
         let signed_challenge = keypair.sign_message(&challenge_string);
-        let (api_key, recovery_codes) =
-            api::signup_challenge(challenge_string, signed_challenge).await?;
+        let (api_key, recovery_codes) = api::signup(challenge_string, signed_challenge).await?;
         match &mut self.config.credentials {
             Some(creds) => {
                 creds.api_key = Some(api_key.clone());
@@ -188,6 +188,18 @@ impl Manager {
         println!("\nIf you lose these codes, you may lose access to your account and ability to publish!");
         println!("\n------");
 
+        Ok(())
+    }
+
+    pub async fn recover(&mut self, name: String, recovery_code: String) -> Result<()> {
+        // 1. Generate a new keypair
+        // 2. Send name + public key + code to Server
+        // 3. Server stores public key and removes the recovery code
+        // 4. Generates a new API Key, stores it, and sends it back
+        // 5. Store this in the credentials part of the config
+
+        let keypair = auth::generate_keyfile_pair(&mut self.config)?;
+        let public_key = keypair.public_key_as_string();
         Ok(())
     }
 

@@ -43,6 +43,15 @@ pub enum Commands {
         name: String,
     },
 
+    /// Recover an account with a recovery code
+    Recover {
+        /// Username to recover
+        name: String,
+
+        /// Valid recovery code for the account
+        recovery_code: String,
+    },
+
     /// Add a Moxen.toml manifest to an existing project
     Moxify,
 

@@ -21,6 +21,10 @@ async fn main() -> Result<()> {
             pkg_mgr.package()?;
         }
         Commands::Register { name } => pkg_mgr.register(name).await?,
+        Commands::Recover {
+            name,
+            recovery_code,
+        } => pkg_mgr.recover(name, recovery_code).await?,
         Commands::Publish => pkg_mgr.publish().await?,
         Commands::Moxify => pkg_mgr.convert_to_mox()?,
         Commands::Clean => pkg_mgr.clean()?,
