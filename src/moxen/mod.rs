@@ -192,12 +192,6 @@ impl Manager {
     }
 
     pub async fn recover(&mut self, name: String, recovery_code: String) -> Result<()> {
-        // 1. Generate a new keypair
-        // 2. Send name + public key + code to Server
-        // 3. Server stores public key and removes the recovery code
-        // 4. Generates a new API Key, stores it, and sends it back
-        // 5. Store this in the credentials part of the config
-
         let keypair = auth::generate_keyfile_pair(&mut self.config)?;
         let public_key = keypair.public_key_as_string();
         Ok(())

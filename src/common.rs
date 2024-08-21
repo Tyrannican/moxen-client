@@ -19,6 +19,7 @@ pub enum MoxenError {
     LoadError(String),
     InvalidUsername(String),
     ApiError(String),
+    AuthError(String),
     GeneralError(String),
 }
 
@@ -35,15 +36,16 @@ impl std::fmt::Display for MoxenError {
             Self::ChecksumFailure((chk1, chk2)) => {
                 writeln!(f, "checksum failure: {chk1} doesn't match expected {chk2}")
             }
-            Self::LoadError(err) => writeln!(f, "error loading file: {err}"),
+            Self::LoadError(err) => writeln!(f, "loading error: {err}"),
             Self::ConfigError(err) => {
-                writeln!(f, "config error parsing Moxen content: {err}")
+                writeln!(f, "config error: {err}")
             }
             Self::InvalidUsername(reason) => writeln!(f, "invalid username: {reason}"),
             Self::ApiError(err) => {
-                writeln!(f, "error communicating with Moxen Registry API: {err}")
+                writeln!(f, "moxen registry api error: {err}")
             }
-            Self::GeneralError(err) => writeln!(f, "{err}"),
+            Self::AuthError(err) => writeln!(f, "authentication error: {err}"),
+            Self::GeneralError(err) => writeln!(f, "error occurred: {err}"),
         }
     }
 }
