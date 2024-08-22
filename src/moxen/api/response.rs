@@ -13,3 +13,9 @@ pub struct UserRegisterResponse {
     pub recovery_codes: Vec<String>,
     pub error: Option<String>,
 }
+
+#[derive(Deserialize)]
+pub struct UserRecoveryResponse {
+    pub api_key: String,
+    pub error: Option<String>,
+}

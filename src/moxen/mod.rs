@@ -192,8 +192,22 @@ impl Manager {
     }
 
     pub async fn recover(&mut self, name: String, recovery_code: String) -> Result<()> {
+        println!("Recovering user account for {name}...");
         let keypair = auth::generate_keyfile_pair(&mut self.config)?;
-        let public_key = keypair.public_key_as_string();
+        let pub_key = keypair.public_key_as_string();
+
+        let challenge = api::generate_challenge(&name, &pub_key).await?;
+        let signed = keypair.sign_message(&challenge);
+
+        let api_key = api::recover(challenge, signed, recovery_code).await?;
+
+        println!("Successfully recovered user account!\nNew API Key: {api_key}");
+        if let Some(creds) = &mut self.config.credentials {
+            creds.username = name;
+            creds.api_key = Some(api_key);
+            self.config.write()?;
+        }
+
         Ok(())
     }
 
