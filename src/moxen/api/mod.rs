@@ -10,11 +10,20 @@ use std::collections::HashMap;
 
 use crate::common::MoxenError;
 
-pub const API_URL: &str = "http://localhost:9000";
+pub const API_URL: &str = "https://localhost:9443";
+
+fn generate_request_client() -> Result<Client> {
+    let client = reqwest::Client::builder()
+        .use_rustls_tls()
+        .danger_accept_invalid_certs(true)
+        .build()?;
+
+    Ok(client)
+}
 
 pub async fn fetch_mox(name: &str) -> Result<(String, Vec<u8>)> {
     let url = format!("{API_URL}/api/v1/mox/{name}");
-    let client = Client::new();
+    let client = generate_request_client()?;
 
     let response = client.get(url).send().await?;
     let status = response.status();
@@ -41,7 +50,7 @@ pub async fn publish_mox_package(
     api_key: &str,
     username: &str,
 ) -> Result<()> {
-    let client = Client::new();
+    let client = generate_request_client()?;
     let url = format!("{API_URL}/api/v1/mox/new");
     let response = client
         .post(url)
@@ -64,7 +73,7 @@ pub async fn publish_mox_package(
 }
 
 pub async fn generate_challenge(name: &str, pub_key: &str) -> Result<String> {
-    let client = Client::new();
+    let client = generate_request_client()?;
     let url = format!("{API_URL}/api/v1/auth/challenge");
     let mut body = HashMap::new();
     body.insert("name", name);
@@ -80,7 +89,7 @@ pub async fn generate_challenge(name: &str, pub_key: &str) -> Result<String> {
 }
 
 pub async fn signup(original: String, challenge: String) -> Result<(String, Vec<String>)> {
-    let client = Client::new();
+    let client = generate_request_client()?;
     let url = format!("{API_URL}/api/v1/auth/register");
     let mut body = HashMap::new();
     body.insert("original", original);
@@ -100,7 +109,7 @@ pub async fn signup(original: String, challenge: String) -> Result<(String, Vec<
 }
 
 pub async fn recover(challenge: String, signed: String, code: String) -> Result<String> {
-    let client = Client::new();
+    let client = generate_request_client()?;
     let url = format!("{API_URL}/api/v1/auth/recovery");
     let mut body = HashMap::new();
     body.insert("challenge", challenge);

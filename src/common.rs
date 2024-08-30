@@ -4,7 +4,7 @@ use sha1::{Digest, Sha1};
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 const INVALID_FILETYPE: [&'static str; 6] = ["exe", "c", "cpp", "rs", "js", "cs"];
 
 #[derive(Debug)]

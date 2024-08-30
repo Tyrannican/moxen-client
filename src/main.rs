@@ -14,7 +14,7 @@ async fn main() -> Result<()> {
     let mut pkg_mgr = Manager::new(cli.directory)?;
 
     match cli.commands {
-        Commands::New { name } => pkg_mgr.bootstrap(name)?,
+        Commands::New { name, docs } => pkg_mgr.bootstrap(name, docs)?,
         Commands::Add { names } => pkg_mgr.download_dependencies(names).await?,
         Commands::Info => pkg_mgr.info(),
         Commands::Package => {

@@ -19,6 +19,9 @@ pub enum Commands {
     New {
         /// Name of the new project
         name: String,
+
+        #[clap(long, default_value = None)]
+        docs: Option<DocumentationType>,
     },
 
     /// Add a package as a dependency of this addon/library
@@ -57,4 +60,21 @@ pub enum Commands {
 
     /// Clean any packaged artifacts
     Clean,
+}
+
+#[derive(clap::ValueEnum, Debug, Clone)]
+pub enum DocumentationType {
+    Live,
+    Classic,
+    Vanilla,
+}
+
+impl DocumentationType {
+    pub fn repo(&self) -> String {
+        match self {
+            Self::Live => "https://github.com/Gethe/wow-ui-source/tree/live".to_string(),
+            Self::Classic => "https://github.com/Gethe/wow-ui-source/tree/classic".to_string(),
+            Self::Vanilla => "https://github.com/Gethe/wow-ui-source/tree/classic_era".to_string(),
+        }
+    }
 }

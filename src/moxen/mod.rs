@@ -11,7 +11,10 @@ use config::MoxenConfig;
 use std::path::PathBuf;
 use tokio::sync::mpsc::channel;
 
-use crate::common::{create_project_dir, MoxenError};
+use crate::{
+    common::{create_project_dir, MoxenError},
+    DocumentationType,
+};
 use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
@@ -65,7 +68,7 @@ impl Manager {
         })
     }
 
-    pub fn bootstrap(&mut self, name: String) -> Result<()> {
+    pub fn bootstrap(&mut self, name: String, docs: Option<DocumentationType>) -> Result<()> {
         let project_path = self.src_dir.join(&name);
         if !project_path.exists() {
             std::fs::create_dir_all(&project_path).context("creating new project directory")?;
@@ -79,6 +82,9 @@ impl Manager {
 
         bootstrap_lua(&self.src_dir)?;
         bootstrap_toc(&self.src_dir, &manifest)?;
+        if let Some(docs) = docs {
+            //
+        }
         println!("Created new Mox package `{name}`");
 
         Ok(())
@@ -213,6 +219,10 @@ impl Manager {
 
     pub fn clean(&self) -> Result<()> {
         std::fs::remove_dir_all(&self.mox_dir)?;
+        Ok(())
+    }
+
+    pub async fn fetch_latest_documentation(&self, docs_type: DocumentationType) -> Result<()> {
         Ok(())
     }
 
