@@ -290,6 +290,14 @@ pub fn bootstrap_lua(dir: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
+pub fn bootstrap_gitignore(dir: impl AsRef<Path>) -> Result<()> {
+    let ignore = dir.as_ref().join(".gitignore");
+    let mut f = std::fs::File::create(ignore)?;
+    f.write_all("docs/".as_bytes())?;
+
+    Ok(())
+}
+
 pub fn bootstrap_toc(dir: impl AsRef<Path>, manifest: &PackageManifest) -> Result<()> {
     let mox = &manifest.mox;
     let mut normalised_name = mox.name.replace(" ", "");

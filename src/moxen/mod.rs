@@ -12,10 +12,10 @@ use std::path::PathBuf;
 use tokio::sync::mpsc::channel;
 
 use crate::{
-    common::{create_project_dir, MoxenError},
+    common::{copy_directory, create_project_dir, MoxenError},
     DocumentationType,
 };
-use manifest::{bootstrap_lua, bootstrap_toc, PackageManifest};
+use manifest::{bootstrap_gitignore, bootstrap_lua, bootstrap_toc, PackageManifest};
 use package::package_content;
 use publish::publish_package;
 
@@ -69,6 +69,7 @@ impl Manager {
     }
 
     pub fn bootstrap(&mut self, name: String, docs: Option<DocumentationType>) -> Result<()> {
+        println!("Creating new Mox package: `{name}`...");
         let project_path = self.src_dir.join(&name);
         if !project_path.exists() {
             std::fs::create_dir_all(&project_path).context("creating new project directory")?;
@@ -82,10 +83,11 @@ impl Manager {
 
         bootstrap_lua(&self.src_dir)?;
         bootstrap_toc(&self.src_dir, &manifest)?;
+        bootstrap_gitignore(&self.src_dir)?;
         if let Some(docs) = docs {
-            //
+            self.add_documentation(docs)?;
         }
-        println!("Created new Mox package `{name}`");
+        println!("Created new Mox package `{name}`!");
 
         Ok(())
     }
@@ -222,7 +224,42 @@ impl Manager {
         Ok(())
     }
 
-    pub async fn fetch_latest_documentation(&self, docs_type: DocumentationType) -> Result<()> {
+    pub fn fetch_latest_documentation(&self, doc: DocumentationType) -> Result<()> {
+        let branch = doc.branch();
+        println!("Fetcing the latest documentation for the {branch} version of WoW");
+
+        let docs_path = self.mox_dir.join("api_docs").join(&branch);
+
+        // Pull is awkward apparently so just delete and re-clone
+        if !docs_path.exists() {
+            std::fs::create_dir_all(&docs_path)?;
+        } else {
+            std::fs::remove_dir_all(&docs_path)?;
+            std::fs::create_dir_all(&docs_path)?;
+        }
+
+        git2::build::RepoBuilder::new()
+            .branch(&doc.branch())
+            .clone(&doc.repo(), &docs_path)?;
+
+        Ok(())
+    }
+
+    fn add_documentation(&self, doc: DocumentationType) -> Result<()> {
+        let branch = doc.branch();
+        println!("Adding API documentation for the {branch} WoW environment...");
+        let src = self
+            .mox_dir
+            .join("api_docs")
+            .join(&branch)
+            .join("Interface")
+            .join("AddOns");
+
+        if !src.exists() {
+            self.fetch_latest_documentation(doc)?;
+        }
+        let dst = self.src_dir.join("docs").join(&branch);
+        copy_directory(src, dst)?;
         Ok(())
     }
 

@@ -20,6 +20,7 @@ pub enum Commands {
         /// Name of the new project
         name: String,
 
+        /// Add Blizzard API reference documentation to the project
         #[clap(long, default_value = None)]
         docs: Option<DocumentationType>,
     },
@@ -65,16 +66,22 @@ pub enum Commands {
 #[derive(clap::ValueEnum, Debug, Clone)]
 pub enum DocumentationType {
     Live,
+    Beta,
     Classic,
     Vanilla,
 }
 
 impl DocumentationType {
     pub fn repo(&self) -> String {
+        "https://github.com/Gethe/wow-ui-source".to_string()
+    }
+
+    pub fn branch(&self) -> String {
         match self {
-            Self::Live => "https://github.com/Gethe/wow-ui-source/tree/live".to_string(),
-            Self::Classic => "https://github.com/Gethe/wow-ui-source/tree/classic".to_string(),
-            Self::Vanilla => "https://github.com/Gethe/wow-ui-source/tree/classic_era".to_string(),
+            Self::Live => "live".to_string(),
+            Self::Beta => "beta".to_string(),
+            Self::Classic => "classic".to_string(),
+            Self::Vanilla => "classic_era".to_string(),
         }
     }
 }

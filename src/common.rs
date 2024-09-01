@@ -136,3 +136,17 @@ pub fn validate_package_checksum(data: &Vec<u8>, checksum: &str) -> Result<(), M
         Err(MoxenError::ChecksumFailure((check, checksum.to_string())))
     }
 }
+
+pub fn copy_directory(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> Result<()> {
+    std::fs::create_dir_all(&dst)?;
+    for entry in std::fs::read_dir(src)? {
+        let entry = entry?;
+        let ft = entry.file_type()?;
+        if ft.is_dir() {
+            copy_directory(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            std::fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
